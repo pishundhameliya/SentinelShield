@@ -163,7 +163,7 @@ SentinelShield/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Yashsmakwana/SentinelShield.git
+   git clone https://github.com/pishundhameliya/SentinelShield.git
    cd SentinelShield/sentinelshield
    ```
 
