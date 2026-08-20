@@ -108,12 +108,15 @@ flowchart TD
 
 ```
 SentinelShield/
-├── MODULAR_ARCHITECTURE_PLAN.md    # Multi-engineer modular blueprint
 ├── AGENTS.md                       # Agent instructions & development protocol
+├── AGENT_RULES.md                  # Non-negotiable engineering standards
 ├── ARCHITECTURE.md                 # In-depth architectural documentation
 ├── PROJECT_MANIFEST.md             # Component & API endpoint catalog
+├── README.md                       # Main project overview and getting started
 ├── TASKS.md                        # Active backlog and roadmap
-├── sentinelshield/
+├── docs/                           # Research papers, blueprints, and briefings
+├── scripts/                        # PDF generators and utility scripts
+├── sentinelshield/                 # Core application source code
 │   ├── app.py                      # Clean FastAPI entrypoint (~65 lines)
 │   ├── config.py                   # Central typed settings & directory paths
 │   ├── engine.py                   # Re-export compatibility layer
