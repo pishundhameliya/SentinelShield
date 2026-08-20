@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from engine import (
     blur_box,
     detect_vehicles,
+    detect_fast_alpr,
     extract_plate_candidate,
     normalize_plate,
     process_video,
@@ -666,6 +667,7 @@ def scan_live_anpr(camera_id: str):
     ts_filename = int(now_dt.timestamp())
 
     vehicles = detect_vehicles(frame)
+    fast_alpr_results = detect_fast_alpr(frame)
     annotated = frame.copy()
     fh, fw = annotated.shape[:2]
 
@@ -710,6 +712,22 @@ def scan_live_anpr(camera_id: str):
                     "sharpness_score": cand["deblur_score"],
                     "captured_at": time_str,
                 })
+
+    # Keep the existing crop OCR results and add any full-frame Fast-ALPR reads.
+    known_plates = {item.get("raw_plate") for item in plates_found if item.get("raw_plate")}
+    for alpr_result in fast_alpr_results:
+        if alpr_result["plate"] in known_plates:
+            continue
+        plates_found.append({
+            "vehicle": {"cls": "fast-alpr", "confidence": alpr_result["confidence"]},
+            "plate_text": alpr_result["plate"],
+            "raw_plate": alpr_result["plate"],
+            "ocr_confidence": alpr_result["confidence"],
+            "plate_box": alpr_result["box"],
+            "deblurred_crop_b64": "",
+            "sharpness_score": 0.0,
+            "captured_at": time_str,
+        })
 
     # Save full annotated timestamped snapshot frame
     snap_filename = f"anpr_{camera_id}_{ts_filename}.jpg"

@@ -5,4 +5,5 @@ opencv-python-headless
 numpy
 pillow
 pytesseract
+fast-alpr[onnx]>=0.4.0
 

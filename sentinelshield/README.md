@@ -11,6 +11,11 @@ pip install -r requirements.txt
 python -m uvicorn app:app --host 0.0.0.0 --port 8080
 ```
 
+Fast-ALPR is integrated as the optional local plate-recognition backend. It is
+used automatically when installed; set `SENTINEL_FAST_ALPR=0` to disable it and
+keep the existing OCR backends only. The first Fast-ALPR scan downloads its
+models into the normal user cache.
+
 Open http://127.0.0.1:8080
 
 | Login    | Password   |

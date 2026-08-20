@@ -5,12 +5,16 @@ import hashlib
 import os
 import re
 import base64
+import threading
 from typing import Any
 
 import cv2
 import numpy as np
 
 PLATE_RE = re.compile(r"\b([A-Z]{2}\s?\d{1,2}\s?[A-Z]{1,3}\s?\d{1,4})\b", re.I)
+_fast_alpr = None
+_fast_alpr_lock = threading.Lock()
+_fast_alpr_unavailable = False
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -33,6 +37,44 @@ def extract_plates_from_text(*texts: str) -> list[str]:
         if re.fullmatch(r"[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4}", compact):
             found.append(compact)
     return list(dict.fromkeys(found))
+
+
+def detect_fast_alpr(frame: np.ndarray) -> list[dict[str, Any]]:
+    """Run the optional Fast-ALPR backend on a complete BGR frame."""
+    global _fast_alpr, _fast_alpr_unavailable
+    if frame is None or frame.size == 0 or _fast_alpr_unavailable:
+        return []
+    if os.environ.get("SENTINEL_FAST_ALPR", "1").lower() in {"0", "false", "off", "no"}:
+        return []
+
+    try:
+        if _fast_alpr is None:
+            with _fast_alpr_lock:
+                if _fast_alpr is None:
+                    from fast_alpr import ALPR
+                    _fast_alpr = ALPR(ocr_device="cpu")
+        results = []
+        for result in _fast_alpr.predict(frame):
+            ocr = result.ocr
+            text = normalize_plate(getattr(ocr, "text", "") if ocr else "")
+            if not text:
+                continue
+            confidence = getattr(ocr, "confidence", 0.0) if ocr else 0.0
+            if isinstance(confidence, list):
+                confidence = sum(confidence) / len(confidence) if confidence else 0.0
+            bbox = result.detection.bounding_box
+            results.append({
+                "plate": text,
+                "confidence": round(float(confidence), 3),
+                "box": {
+                    "x": int(bbox.x1), "y": int(bbox.y1),
+                    "w": int(bbox.x2 - bbox.x1), "h": int(bbox.y2 - bbox.y1),
+                },
+            })
+        return results
+    except Exception:
+        _fast_alpr_unavailable = True
+        return []
 
 
 def enhance_blurry_crop(crop: np.ndarray) -> dict[str, Any]:
@@ -378,6 +420,8 @@ def process_video(
         # Advanced Vehicle Detection + Deblurred ALPR OCR
         if idx % every_n == 0 and not black:
             v_boxes = detect_vehicles(frame, prev_g)
+            for alpr_result in detect_fast_alpr(frame):
+                plates_seen.add(alpr_result["plate"])
             for b in v_boxes:
                 vx, vy, vw, vh = b["x"], b["y"], b["w"], b["h"]
                 v_crop = frame[vy:vy + vh, vx:vx + vw]
