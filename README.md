@@ -61,28 +61,44 @@ Designed to scale to **2,00,000+ government cameras** across Gujarat without req
 SentinelShield is structured as a decoupled, race-condition-free modular platform:
 
 ```mermaid
-graph TD
-    Client["Web Command Desk (Leaflet / Vanilla JS)"] -->|"HTTP / WebSocket"| App["FastAPI App Gateway"]
+flowchart TD
+    Client["Web Command Desk (Leaflet / Vanilla JS)"] -->|HTTP / WebSocket| App["FastAPI App Gateway"]
     
     subgraph Core_Layer ["Core Infrastructure Layer"]
-        App --> Config["config.py (Settings)"]
-        App --> DB["core/database.py (SQLite WAL Mode)"]
-        App --> State["core/state.py (Thread-Safe State & WS Hub)"]
-        App --> Auth["core/security.py (Session RBAC)"]
+        Config["config.py (Settings)"]
+        DB[("core/database.py (SQLite WAL Mode)")]
+        State["core/state.py (Thread-Safe State & WS Hub)"]
+        Auth["core/security.py (Session RBAC)"]
     end
     
     subgraph Domain_Modules ["Domain Subsystems"]
-        App --> Vision["modules/vision (Deblur, Fast-ALPR, OCR)"]
-        App --> Streaming["modules/streaming (MJPEG Loop, AI Daemon, Jobs)"]
-        App --> Tracking["modules/tracking (Centroid Tracker, Routes)"]
-        App --> Alerts["modules/alerts (Watchlists, Threat Fusion)"]
-        App --> Integrity["modules/integrity (Hash-Chains, Tamper Scoring)"]
-        App --> Evidence["modules/evidence (Vault Fingerprinting)"]
-        App --> Cyber["modules/cyber (Honeypot Traps)"]
-        App --> Twin["modules/twin (Heatmaps, NLP Assistant)"]
-        App --> Registry["modules/registry (Gujarat CCTV Estate)"]
-        App --> Chat["modules/chat (Team WS Messaging)"]
+        Vision["modules/vision (Deblur, Fast-ALPR, OCR)"]
+        Streaming["modules/streaming (MJPEG Loop, AI Daemon, Jobs)"]
+        Tracking["modules/tracking (Centroid Tracker, Routes)"]
+        Alerts["modules/alerts (Watchlists, Threat Fusion)"]
+        Integrity["modules/integrity (Hash-Chains, Tamper Scoring)"]
+        Evidence["modules/evidence (Vault Fingerprinting)"]
+        Cyber["modules/cyber (Honeypot Traps)"]
+        Twin["modules/twin (Heatmaps, NLP Assistant)"]
+        Registry["modules/registry (Gujarat CCTV Estate)"]
+        Chat["modules/chat (Team WS Messaging)"]
     end
+    
+    App --> Config
+    App --> DB
+    App --> State
+    App --> Auth
+    
+    App --> Vision
+    App --> Streaming
+    App --> Tracking
+    App --> Alerts
+    App --> Integrity
+    App --> Evidence
+    App --> Cyber
+    App --> Twin
+    App --> Registry
+    App --> Chat
     
     Vision --> FastALPR["Fast-ALPR ONNX Engine"]
     Streaming --> VideoWorker["Background Video Worker"]

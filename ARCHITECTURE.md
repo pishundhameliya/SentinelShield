@@ -11,42 +11,60 @@ SentinelShield is engineered as a multi-tier, cyber-physical command desk integr
 ```mermaid
 flowchart TD
     subgraph Edge_VMS_Layer ["Edge & VMS Layer"]
-        CCTV["City / Police Cameras"] -->|"RTSP / HLS"| VMS["VMS Federation / NVR"]
-        VMS -->|"Video Streams"| StreamWorker["Streaming Service / Worker"]
+        CCTV["City / Police Cameras"] -->|RTSP / HLS| VMS["VMS Federation / NVR"]
+        VMS -->|Video Streams| StreamWorker["Streaming Service / Worker"]
     end
 
-    subgraph Core_Subsystems ["Core Subsystems"]
-        StreamWorker --> VisionService["Vision & ANPR Service"]
-        VisionService --> Deblur["LAB CLAHE & Unsharp Mask"]
-        VisionService --> FastALPR["Fast-ALPR ONNX Engine"]
-        VisionService --> Tracker["Centroid Vehicle Tracker"]
-        
-        StreamWorker --> IntegrityService["Integrity & Tamper Service"]
-        IntegrityService --> HashChain["Rolling SHA-256 Chain"]
-        IntegrityService --> TamperDet["Blackout & Freeze Detector"]
-        
-        Tracker --> TrackingService["Tracking & Route Service"]
-        Tracker --> AlertService["Alert & Watchlist Service"]
-        
-        Honeypot["Honeypot Trap Route"] --> CyberService["Cyber Incident Service"]
-        AlertService --> VaultService["Forensic Evidence Vault"]
+    subgraph Core_Subsystems ["Domain Subsystems"]
+        VisionService["Vision & ANPR Service"]
+        Deblur["LAB CLAHE & Unsharp Mask"]
+        FastALPR["Fast-ALPR ONNX Engine"]
+        Tracker["Centroid Vehicle Tracker"]
+        IntegrityService["Integrity & Tamper Service"]
+        HashChain["Rolling SHA-256 Chain"]
+        TamperDet["Blackout & Freeze Detector"]
+        TrackingService["Tracking & Route Service"]
+        AlertService["Alert & Watchlist Service"]
+        CyberService["Cyber Incident Service"]
+        VaultService["Forensic Evidence Vault"]
     end
 
     subgraph Persistence_Layer ["Persistence Layer"]
         DB[("SQLite in WAL Mode")]
-        DB <--> DBManager["core.database.DatabaseManager"]
-        DBManager <--> AlertService
-        DBManager <--> TrackingService
-        DBManager <--> IntegrityService
-        DBManager <--> CyberService
-        DBManager <--> VaultService
+        DBManager["core.database.DatabaseManager"]
     end
 
     subgraph Presentation_Layer ["Presentation Layer"]
-        FastAPI["FastAPI Gateway / Routers"] <--> DBManager
-        FastAPI <--> StateHub["core.state.WebSocketConnectionHub"]
-        StateHub <--> WebClient["Leaflet GIS & Command Desk UI"]
+        FastAPI["FastAPI Gateway / Routers"]
+        StateHub["core.state.WebSocketConnectionHub"]
+        WebClient["Leaflet GIS & Command Desk UI"]
     end
+
+    StreamWorker --> VisionService
+    VisionService --> Deblur
+    VisionService --> FastALPR
+    VisionService --> Tracker
+    
+    StreamWorker --> IntegrityService
+    IntegrityService --> HashChain
+    IntegrityService --> TamperDet
+    
+    Tracker --> TrackingService
+    Tracker --> AlertService
+    
+    AlertService --> VaultService
+
+    DB <--> DBManager
+    DBManager <--> AlertService
+    DBManager <--> TrackingService
+    DBManager <--> IntegrityService
+    DBManager <--> CyberService
+    DBManager <--> VaultService
+
+    FastAPI <--> DBManager
+    FastAPI <--> StateHub
+    StateHub <--> WebClient
+    WebClient --> FastAPI
 ```
 
 ---
