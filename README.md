@@ -62,30 +62,30 @@ SentinelShield is structured as a decoupled, race-condition-free modular platfor
 
 ```mermaid
 graph TD
-    Client[Web Command Desk / Leaflet / Vanilla JS] -->|HTTP / WebSocket| App[FastAPI App Gateway]
+    Client["Web Command Desk (Leaflet / Vanilla JS)"] -->|"HTTP / WebSocket"| App["FastAPI App Gateway"]
     
-    subgraph Core Layer
-        App --> Config[config.py - Settings]
-        App --> DB[core/database.py - SQLite WAL Mode]
-        App --> State[core/state.py - Thread-Safe State & WS Hub]
-        App --> Auth[core/security.py - Session RBAC]
+    subgraph Core_Layer ["Core Infrastructure Layer"]
+        App --> Config["config.py (Settings)"]
+        App --> DB["core/database.py (SQLite WAL Mode)"]
+        App --> State["core/state.py (Thread-Safe State & WS Hub)"]
+        App --> Auth["core/security.py (Session RBAC)"]
     end
     
-    subgraph Domain Modules
-        App --> Vision[modules/vision - Deblur, Fast-ALPR, OCR]
-        App --> Streaming[modules/streaming - MJPEG Loop, AI Daemon, Jobs]
-        App --> Tracking[modules/tracking - Centroid Tracker, Routes]
-        App --> Alerts[modules/alerts - Watchlists, Threat Fusion]
-        App --> Integrity[modules/integrity - Hash-Chains, Tamper Scoring]
-        App --> Evidence[modules/evidence - Vault Fingerprinting]
-        App --> Cyber[modules/cyber - Honeypot Traps]
-        App --> Twin[modules/twin - Heatmaps, NLP Assistant]
-        App --> Registry[modules/registry - Gujarat CCTV Estate]
-        App --> Chat[modules/chat - Team WS Messaging]
+    subgraph Domain_Modules ["Domain Subsystems"]
+        App --> Vision["modules/vision (Deblur, Fast-ALPR, OCR)"]
+        App --> Streaming["modules/streaming (MJPEG Loop, AI Daemon, Jobs)"]
+        App --> Tracking["modules/tracking (Centroid Tracker, Routes)"]
+        App --> Alerts["modules/alerts (Watchlists, Threat Fusion)"]
+        App --> Integrity["modules/integrity (Hash-Chains, Tamper Scoring)"]
+        App --> Evidence["modules/evidence (Vault Fingerprinting)"]
+        App --> Cyber["modules/cyber (Honeypot Traps)"]
+        App --> Twin["modules/twin (Heatmaps, NLP Assistant)"]
+        App --> Registry["modules/registry (Gujarat CCTV Estate)"]
+        App --> Chat["modules/chat (Team WS Messaging)"]
     end
     
-    Vision --> FastALPR[Fast-ALPR ONNX Engine]
-    Streaming --> VideoWorker[Background Video Worker]
+    Vision --> FastALPR["Fast-ALPR ONNX Engine"]
+    Streaming --> VideoWorker["Background Video Worker"]
 ```
 
 ### Module Structure
