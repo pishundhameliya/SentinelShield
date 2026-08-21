@@ -20,7 +20,16 @@ class RegistryService:
         return db_manager.query_rows("SELECT * FROM areas WHERE city_id=? ORDER BY cameras DESC", city_id)
 
     @staticmethod
-    def get_cameras(city_id: str = "", area_id: str = "", owner: str = "government") -> dict[str, Any]:
+    def get_cameras(
+        city: str = "",
+        area: str = "",
+        owner: str = "government",
+        city_id: str | None = None,
+        area_id: str | None = None,
+    ) -> dict[str, Any]:
+        city_id = city_id or city
+        area_id = area_id or area
+
         q = "SELECT * FROM cameras WHERE 1=1"
         args: list[Any] = []
         if city_id:

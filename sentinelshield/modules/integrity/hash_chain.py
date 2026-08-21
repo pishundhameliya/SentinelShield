@@ -24,6 +24,13 @@ class HashChainManager:
         if frame_buffer:
             self.segment_bytes.extend(frame_buffer[:8000])
 
+    def append_segment(self, data: bytes, start_time: float = 0.0, end_time: float | None = None) -> dict[str, Any] | None:
+        """Backward-compatible helper expected by the integrity tests and legacy scripts."""
+        if data:
+            self.segment_bytes.extend(data)
+        self.segment_start_time = start_time
+        return self.close_segment(end_time if end_time is not None else start_time)
+
     def close_segment(self, end_time: float) -> dict[str, Any] | None:
         """Close current segment, compute SHA-256 with previous hash, and roll chain forward."""
         if not self.segment_bytes and not self.chain:
@@ -41,6 +48,19 @@ class HashChainManager:
         self.segment_bytes = bytearray()
         self.segment_start_time = end_time
         return seg
+
+    def verify_chain(self) -> bool:
+        """Validate that each linked segment points to the previous hash in order."""
+        if not self.chain:
+            return True
+
+        expected_prev = self.current_prev if self.chain and self.chain[-1].get("sha256") == self.current_prev else "GENESIS"
+        last_hash = "GENESIS"
+        for seg in self.chain:
+            if seg.get("prev") != last_hash:
+                return False
+            last_hash = seg.get("sha256", "")
+        return last_hash == self.current_prev
 
     def get_chain(self) -> list[dict[str, Any]]:
         """Return full computed hash chain."""

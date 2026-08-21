@@ -22,7 +22,7 @@ def enhance_blurry_crop(crop: np.ndarray) -> dict[str, Any]:
     # 1. Bicubic Rescaling / Upscaling if low resolution
     scale = 1.0
     if h < 90 or w < 220:
-        scale = max(2.5, 240.0 / max(h, 1))
+        scale = 2.0
         new_w, new_h = int(w * scale), int(h * scale)
         crop_upscaled = cv2.resize(crop, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
     else:
