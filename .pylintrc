@@ -31,11 +31,12 @@ disable =
     global-statement,
     line-too-long,
     trailing-whitespace,
+    import-error,
     fixme
 
 [TYPECHECK]
 generated-members = cv2.*, numpy.*, np.*
-ignored-modules = cv2, fast_alpr, torch, fastapi
+ignored-modules = cv2, fast_alpr, torch, fastapi, pytesseract, requests, uvicorn
 
 [FORMAT]
 max-line-length = 120
