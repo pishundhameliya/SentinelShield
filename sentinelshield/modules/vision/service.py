@@ -21,7 +21,6 @@ from modules.vision.alpr_ocr import (
     extract_plate_candidate,
     read_plate_text,
 )
-from modules.vision.deblur import blur_box, enhance_blurry_crop
 from modules.vision.vehicle_detector import detect_vehicles
 
 
@@ -45,7 +44,7 @@ class VisionService:
         vehicles = detect_vehicles(frame)
         fast_alpr_results = detect_fast_alpr(frame)
         annotated = frame.copy()
-        fh, fw = annotated.shape[:2]
+        _, fw = annotated.shape[:2]
 
         # Draw header timestamp banner on full frame photo
         cv2.rectangle(annotated, (0, 0), (fw, 45), (15, 23, 42), -1)
@@ -137,6 +136,8 @@ class VisionService:
             "snapshot_url": snap_url,
             "timestamp": time_str,
         }
+
+    process_scan_frame = process_frame_anpr
 
 
 vision_service = VisionService()

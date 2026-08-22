@@ -12,7 +12,7 @@ except ImportError:
     cv2 = None  # type: ignore
 
 from core.database import db_manager, utcnow
-from modules.integrity.hash_chain import HashChainManager, sha256_bytes
+from modules.integrity.hash_chain import sha256_bytes
 from modules.integrity.service import integrity_service
 from modules.integrity.tamper_detector import is_black_frame, frame_difference_score
 from modules.vision.alpr_ocr import (

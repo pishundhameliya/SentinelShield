@@ -75,10 +75,15 @@ class _Mark:
 
 mark = _Mark()
 
+class SkipTestException(Exception):
+    """Raised when a test execution is skipped."""
+
 def skip(reason: str = ""):
-    raise Exception(f"Skipped: {reason}")
+    """Skip test execution with a reason message."""
+    raise SkipTestException(f"Skipped: {reason}")
 
 def fail(msg: str = ""):
+    """Explicitly fail a test execution."""
     raise AssertionError(msg)
 
 class approx:

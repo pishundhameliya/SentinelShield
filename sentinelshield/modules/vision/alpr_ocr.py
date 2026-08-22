@@ -1,7 +1,6 @@
 """Fast-ALPR, Plate Candidate Extraction, and OCR Character Recognition."""
 from __future__ import annotations
 
-import os
 import re
 import threading
 from typing import Any

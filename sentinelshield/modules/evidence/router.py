@@ -1,11 +1,9 @@
 """API Router for forensic evidence packages and incident ranking."""
 from __future__ import annotations
 
-from typing import Any
-
 try:
-    from fastapi import APIRouter, Request, Body
-    from fastapi.responses import JSONResponse, Response
+    from fastapi import APIRouter, Body
+    from fastapi.responses import JSONResponse
 except ImportError:
     class _MockAPIRouter:
         def __init__(self, *args, **kwargs): pass
@@ -14,8 +12,6 @@ except ImportError:
         def delete(self, *args, **kwargs): return lambda f: f
     APIRouter = _MockAPIRouter  # type: ignore
     JSONResponse = dict  # type: ignore
-    Response = object  # type: ignore
-    Request = Any  # type: ignore
     Body = lambda default=None, **kw: default  # type: ignore
 
 from modules.evidence.vault import evidence_vault_service

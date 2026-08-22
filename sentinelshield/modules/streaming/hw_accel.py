@@ -11,6 +11,15 @@ except ImportError:
     cv2 = None  # type: ignore
 
 
+def safe_release_capture(cap: Any) -> None:
+    """Safely release an open VideoCapture object without raising unhandled errors."""
+    if cap is not None:
+        try:
+            cap.release()
+        except (AttributeError, RuntimeError, OSError, Exception):
+            pass
+
+
 def get_available_hw_accelerations() -> List[str]:
     """Auto-probe host and OpenCV build capabilities to discover available hardware acceleration backends."""
     if cv2 is None:
@@ -23,11 +32,10 @@ def get_available_hw_accelerations() -> List[str]:
     if hasattr(cv2, "cuda") and hasattr(cv2.cuda, "getCudaEnabledDeviceCount"):
         try:
             cuda_detected = cv2.cuda.getCudaEnabledDeviceCount() > 0
-        except Exception:
+        except (AttributeError, RuntimeError, Exception):
             cuda_detected = False
 
     if not cuda_detected:
-        # Check environment and build flags
         cuda_env = os.environ.get("CUDA_VISIBLE_DEVICES", "")
         if cuda_env and cuda_env != "-1":
             cuda_detected = True
@@ -35,7 +43,7 @@ def get_available_hw_accelerations() -> List[str]:
     if cuda_detected:
         accelerations.append("cuda")
 
-    # 2. Probe MSMF (Microsoft Media Foundation with Direct3D11) on Windows
+    # 2. Probe MSMF / D3D11 on Windows
     if sys.platform == "win32" or os.name == "nt":
         if hasattr(cv2, "CAP_MSMF"):
             accelerations.append("msmf")
@@ -48,10 +56,10 @@ def get_available_hw_accelerations() -> List[str]:
     if hasattr(cv2, "CAP_FFMPEG"):
         accelerations.append("ffmpeg")
 
-    # 4. Universal software fallback always available
+    # 4. Universal software fallback
     accelerations.append("software")
 
-    # Return deduplicated preservation of priority order
+    # Deduplicate preserving order
     seen = set()
     result = []
     for acc in accelerations:
@@ -69,7 +77,8 @@ def create_hw_videocapture(
 
     Args:
         source_path: Video file path, RTSP/HTTP URL, or camera device index (int or str).
-        preferred_accel: Preferred acceleration backend ("auto", "cuda", "msmf", "d3d11", "dshow", "ffmpeg", "software").
+        preferred_accel: Preferred acceleration backend
+            ("auto", "cuda", "msmf", "d3d11", "dshow", "ffmpeg", "software").
 
     Returns:
         Tuple of (cv2.VideoCapture instance, backend_name string).
@@ -77,14 +86,12 @@ def create_hw_videocapture(
     if cv2 is None:
         return None, "software"
 
-    # Normalize integer camera index string if applicable
     source = source_path
     if isinstance(source, str) and source.isdigit():
         source = int(source)
 
     preferred = preferred_accel.lower().strip() if isinstance(preferred_accel, str) else "auto"
 
-    # Build prioritized candidate list: list of (backend_name, api_preference, hw_accel_prop)
     candidates: List[Tuple[str, int, Optional[int]]] = []
 
     cuda_prop = getattr(cv2, "VIDEO_ACCELERATION_CUDA", 3)
@@ -109,7 +116,7 @@ def create_hw_videocapture(
         candidates.append(("ffmpeg", cap_ffmpeg, None))
         candidates.append(("software", cap_any, None))
     else:
-        # "auto" mode: probe host platform and try backends in order of throughput
+        # "auto" mode
         available = get_available_hw_accelerations()
         if "cuda" in available:
             candidates.append(("cuda", cap_ffmpeg, cuda_prop))
@@ -134,33 +141,20 @@ def create_hw_videocapture(
                 if hw_accel is not None and hasattr(cv2, "CAP_PROP_HW_ACCELERATION"):
                     try:
                         cap.set(cv2.CAP_PROP_HW_ACCELERATION, hw_accel)
-                    except Exception:
+                    except (AttributeError, RuntimeError, Exception):
                         pass
                 return cap, backend_name
 
-            # If not opened, clean up and try next candidate
-            if cap is not None:
-                try:
-                    cap.release()
-                except Exception:
-                    pass
-                cap = None
-        except Exception:
-            if cap is not None:
-                try:
-                    cap.release()
-                except Exception:
-                    pass
+            safe_release_capture(cap)
+            cap = None
+        except (AttributeError, RuntimeError, OSError, Exception):
+            safe_release_capture(cap)
             cap = None
             continue
 
-    # Final fallback: software default VideoCapture
+    # Final fallback
     try:
         cap = cv2.VideoCapture(source, cap_any)
         return cap, "software"
-    except Exception:
-        try:
-            cap = cv2.VideoCapture(source)
-            return cap, "software"
-        except Exception:
-            return None, "software"
+    except (AttributeError, RuntimeError, OSError, Exception):
+        return None, "software"
