@@ -32,16 +32,22 @@ FONT_HERSHEY_SIMPLEX = 0
 LINE_AA = 16
 COLOR_BGR2GRAY = 6
 COLOR_GRAY2BGR = 8
+COLOR_BGR2LAB = 44
+COLOR_LAB2BGR = 56
 
 CV_8U = 0
+CV_64F = 6
 THRESH_BINARY = 0
 THRESH_OTSU = 8
+ADAPTIVE_THRESH_GAUSSIAN_C = 1
+ADAPTIVE_THRESH_MEAN_C = 0
 MORPH_RECT = 0
 MORPH_CLOSE = 3
 RETR_EXTERNAL = 0
 CHAIN_APPROX_SIMPLE = 1
 INTER_AREA = 3
 INTER_LINEAR = 1
+INTER_CUBIC = 2
 
 
 class _Cuda:
@@ -146,16 +152,65 @@ def imdecode(buf: Any, flags: int = 1) -> Optional[Any]:
     return np.zeros((h, w, 3), dtype=np.uint8)
 
 
+def imwrite(filename: str, img: Any, params: Any = None) -> bool:
+    return True
+
+
 def cvtColor(src: Any, code: int) -> Any:
     if np is not None and hasattr(src, "shape"):
         if code == COLOR_BGR2GRAY and len(src.shape) == 3:
             return src[:, :, 0].copy()
         elif code == COLOR_GRAY2BGR and len(src.shape) == 2:
             return np.stack([src, src, src], axis=-1)
-    return src
+    return src.copy() if hasattr(src, "copy") else src
+
+
+def split(src: Any) -> Tuple[Any, Any, Any]:
+    if np is not None and hasattr(src, "shape") and len(src.shape) == 3:
+        return src[:, :, 0].copy(), src[:, :, 1].copy(), src[:, :, 2].copy()
+    return src, src, src
+
+
+def merge(mv: Tuple[Any, Any, Any]) -> Any:
+    if np is not None and len(mv) == 3 and hasattr(mv[0], "shape"):
+        return np.stack(mv, axis=-1)
+    return mv[0] if mv else None
+
+
+class _CLAHE:
+    def __init__(self, clipLimit: float = 2.0, tileGridSize: Tuple[int, int] = (8, 8)):
+        self.clipLimit = clipLimit
+        self.tileGridSize = tileGridSize
+
+    def apply(self, src: Any) -> Any:
+        return src.copy() if hasattr(src, "copy") else src
+
+
+def createCLAHE(clipLimit: float = 2.0, tileGridSize: Tuple[int, int] = (8, 8)) -> _CLAHE:
+    return _CLAHE(clipLimit, tileGridSize)
 
 
 def GaussianBlur(src: Any, ksize: Tuple[int, int], sigmaX: float, *args, **kwargs) -> Any:
+    return src.copy() if hasattr(src, "copy") else src
+
+
+def addWeighted(src1: Any, alpha: float, src2: Any, beta: float, gamma: float) -> Any:
+    return src1.copy() if hasattr(src1, "copy") else src1
+
+
+class _LaplacianResult:
+    def __init__(self, val: float = 120.0):
+        self._val = val
+
+    def var(self) -> float:
+        return self._val
+
+
+def Laplacian(src: Any, ddepth: int, *args, **kwargs) -> _LaplacianResult:
+    return _LaplacianResult(120.0)
+
+
+def adaptiveThreshold(src: Any, maxValue: float, adaptiveMethod: int, thresholdType: int, blockSize: int, C: float) -> Any:
     return src.copy() if hasattr(src, "copy") else src
 
 
