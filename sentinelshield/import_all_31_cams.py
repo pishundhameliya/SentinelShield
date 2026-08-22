@@ -21,7 +21,8 @@ def import_cams():
     for c in cams:
         cid = f"cam-{c['id']}"
         name = f"Camera {c['id']} — {c.get('location', '')}"
-        live_url = f"https://live.sentinelgujarat.in/camera/{c['id']}"
+        rtsp_url = c.get("rtsp_url") or f"rtsp://live.corp8.cloud:8554/stream/{c['id']}"
+        live_url = f"https://live.corp8.cloud/camera/{c['id']}"
         spot = c.get('location', '')
         
         # Determine city mapping based on location text

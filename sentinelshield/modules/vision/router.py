@@ -36,7 +36,7 @@ def scan_live_anpr(camera_id: str):
         return JSONResponse({"error": "Camera not found"}, 404)
 
     number = camera_id.rsplit("-", 1)[-1] if camera_id.startswith("sentinel-cam-") else ""
-    sentinel_stream = f"https://live.sentinelgujarat.in/stream/{number}" if number.isdigit() else ""
+    sentinel_stream = f"https://live.corp8.cloud/stream/{number}" if number.isdigit() else ""
     active_path = live_stream_state.current_path if live_stream_state.current_camera_id == camera_id else None
     source = active_path or sentinel_stream or cam.get("live_url") or cam.get("source") or ""
 
