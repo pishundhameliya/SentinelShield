@@ -1,48 +1,37 @@
-# E2E Test Infra: SentinelShield (Sentinel-X Gujarat)
+# E2E Test Infrastructure: SentinelShield (Sentinel-X Gujarat)
 
 ## Test Philosophy
 - Opaque-box, requirement-driven derived from `ORIGINAL_REQUEST.md`.
-- Methodology: Category-Partition + Boundary Value Analysis + Pairwise Combinatorial Testing + Workload Stress Testing.
+- Methodology: Category-Partition + Boundary Value Analysis + Pairwise Combinatorial Testing + Workload Stress Testing + AST Lint Static Analysis.
 
-## Feature Inventory
-| # | Feature | Source (Requirement) | Tier 1 | Tier 2 | Tier 3 |
-|---|---------|----------------------|:------:|:------:|:------:|
-| 1 | DB WAL Checkpoint Truncation | ORIGINAL_REQUEST § R1 | 5 | 5 | ✓ |
-| 2 | DB Periodic Vacuuming & Optimize | ORIGINAL_REQUEST § R1 | 5 | 5 | ✓ |
-| 3 | Sighting Log 90-Day Archiving | ORIGINAL_REQUEST § R1 | 5 | 5 | ✓ |
-| 4 | Stream Exponential Backoff Reconnection | ORIGINAL_REQUEST § R1 | 5 | 5 | ✓ |
-| 5 | Hardware-Assisted Video Decode Probing | ORIGINAL_REQUEST § R2 | 5 | 5 | ✓ |
-| 6 | Dynamic Frame-Dropping Backpressure | ORIGINAL_REQUEST § R2 | 5 | 5 | ✓ |
-| 7 | Court-Ready Evidence PDF Brief | ORIGINAL_REQUEST § R3 | 5 | 5 | ✓ |
-| 8 | Deterministic SHA-256 Verification | ORIGINAL_REQUEST § R3 | 5 | 5 | ✓ |
-| 9 | Vectorized LSB Frame Watermarking | ORIGINAL_REQUEST § R3 | 5 | 5 | ✓ |
-| 10 | Operator Dispatch Webhooks | ORIGINAL_REQUEST § R4 | 5 | 5 | ✓ |
-| 11 | Estate CSV Bulk Importer | ORIGINAL_REQUEST § R4 | 5 | 5 | ✓ |
-| 12 | App Lifespan Daemon Orchestration | ORIGINAL_REQUEST § R1,R4 | 5 | 5 | ✓ |
+---
 
-## Test Architecture
-- Test Runner: `pytest sentinelshield/tests/ -v` and `python sentinelshield/tests/benchmark_200_streams.py`
-- Test Directory: `sentinelshield/tests/`
-- Test Suites:
-  - `test_database_self_healing.py`: Tests WAL truncation, 90-day archiving, composite indexes, maintenance daemon.
-  - `test_stream_acceleration_and_backpressure.py`: Tests hardware decode probing, backoff auto-reconnection, and client frame-dropping.
-  - `test_forensic_pdf_and_lsb.py`: Tests Section 65B PDF generation, QR code parsing, deterministic SHA-256 validation, LSB frame watermark embedding/extraction.
-  - `test_webhooks_and_csv_importer.py`: Tests webhook HMAC signing, queue retry backoff, circuit-breaker, and CSV camera estate import with Gujarat geographic bounding box validation.
-  - `test_modular_sentinel.py`: Full API and domain integration test suite.
-  - `benchmark_200_streams.py`: 200 concurrent real-time stream simulation and throughput benchmark.
+## The 13 Automated Test Suites in `sentinelshield/tests/`
 
-## Real-World Application Scenarios (Tier 4)
-| # | Scenario | Features Exercised | Complexity |
-|---|----------|--------------------|------------|
-| 1 | High-Density 200-Stream Ingestion & DB Pressure | F1, F2, F3, F5, F6, F12 | High |
-| 2 | Network Jitter & CCTV Feed Auto-Recovery | F4, F6, F12 | Medium |
-| 3 | Critical Watchlist Threat Alert & Operator Dispatch | F10, F12 | Medium |
-| 4 | Courtroom Evidence Sealing & Section 65B Audit | F7, F8, F9 | High |
-| 5 | Statewide Gujarat Camera Estate Bulk Import | F11 | Medium |
+| # | Test Suite File | Coverage Scope & Invariants Tested |
+|---|----------------|------------------------------------|
+| 1 | `benchmark_200_streams.py` | 50, 100, and 200 concurrent real-time stream simulation, throughput ($>28,000\text{ FPS}$), latency ($<0.04\text{ ms}$), and hash chain validation. |
+| 2 | `test_async_evidence_sealing.py` | Asynchronous evidence pack sealing, custody metadata verification, and SHA-256 JSON digests. |
+| 3 | `test_code_quality_and_lints.py` | AST syntax compilation across 80+ files, DML SQL parameterization guard, domain isolation, and legacy re-export parity. |
+| 4 | `test_database_self_healing.py` | Database WAL checkpoint truncation, 90-day sighting archiving, and `DatabaseMaintenanceDaemon`. |
+| 5 | `test_forensic_evidence_pdf_and_watermark.py` | Section 65B/BSA 2023 courtroom PDF brief generator, canonical JSON order-invariant hash verification, and 256-bit LSB frame watermarking with CRC32. |
+| 6 | `test_hash_bulk_batch.py` | BulkHashBatcher high-speed transaction flushing and rolling SHA-256 block chains. |
+| 7 | `test_modular_sentinel.py` | Full REST endpoint, WebSocket channel, and domain subsystem integration suite. |
+| 8 | `test_stream_acceleration_and_backpressure.py` | Hardware-assisted video decode probing (`CUDA`, `NVDEC`, `MSMF`), client backpressure frame-dropping, and exponential backoff reconnect. |
+| 9 | `test_stream_backpressure_stress_challenge.py` | Adversarial backpressure stress under artificial network latency and consumer queue backlogs. |
+| 10 | `test_stream_disconnect_challenge.py` | Stream failure simulation, socket drop handling, and exponential reconnect recovery. |
+| 11 | `test_stream_pool.py` | Multi-process `StreamWorkerPool` core partitioning and process lifecycle management. |
+| 12 | `test_tamper_ring_buffer.py` | `MultiCameraTamperPool` zero-allocation $(90, 160, 3)$ ring buffer tamper detection (blackout & freeze). |
+| 13 | `test_webhooks_and_csv_importer.py` | Operator dispatch webhooks with HMAC SHA-256 signatures, retry queues, and transactional CSV camera estate bulk importer with Gujarat GPS bounds validation. |
 
-## Coverage Thresholds
-- Tier 1: ≥5 per feature (Total ≥ 60)
-- Tier 2: ≥5 per feature boundary cases (Total ≥ 60)
-- Tier 3: Pairwise coverage of major feature interactions
-- Tier 4: ≥5 realistic statewide surveillance application scenarios
-- Tier 5: Adversarial edge cases and 200 concurrent stream throughput stress testing
+---
+
+## Universal Execution Command
+```bash
+python verify.py
+```
+
+## GitHub Actions CI/CD Pipeline
+- Workflow: `.github/workflows/ci.yml`
+- Multi-OS: `ubuntu-latest`, `windows-latest`
+- Multi-Python: `3.11`, `3.12`, `3.13`

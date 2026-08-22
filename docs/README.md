@@ -43,7 +43,7 @@ Welcome to the **SentinelShield (Sentinel-X Gujarat Command Desk)** technical do
 
 ## 🧪 Verification & Test Runner
 
-Run the universal test suite across all 12 test modules and the 200-stream stress benchmark:
+Run the universal test suite across all 13 test modules and the 200-stream stress benchmark:
 ```bash
 python verify.py
 ```
