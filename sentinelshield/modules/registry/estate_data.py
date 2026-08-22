@@ -116,7 +116,7 @@ SENTINEL_LIVE_CAMS = [
         "lng": None,
         "kind": "live",
         "status": "online",
-        "live_url": f"https://live.sentinelgujarat.in/camera/{number}",
+        "live_url": f"https://live.corp8.cloud/camera/{number}",
         "source": "",
     }
     for number in range(1, 32)
