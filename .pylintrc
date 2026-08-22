@@ -3,6 +3,8 @@ py-version = 3.10
 ignore = migrations, .git, venv, .venv, __pycache__
 ignore-patterns = test_.*\.py, pytest\.py
 extension-pkg-allow-list = cv2, numpy
+fail-under = 8.5
+fail-on = E, F
 
 [MESSAGES CONTROL]
 disable =

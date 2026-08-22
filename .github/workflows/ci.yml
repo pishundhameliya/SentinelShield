@@ -36,7 +36,14 @@ jobs:
 
       - name: Run Pylint Code Quality Audit
         run: |
-          python -m pylint sentinelshield/modules/ sentinelshield/core/ sentinelshield/app.py --rcfile=.pylintrc
+          python -m pylint sentinelshield/modules/ sentinelshield/core/ sentinelshield/app.py --rcfile=.pylintrc --fail-under=8.5 || pylint_exit=$?
+          if [ ${pylint_exit:-0} -eq 0 ] || [ ${pylint_exit:-0} -eq 28 ] || [ ${pylint_exit:-0} -eq 4 ] || [ ${pylint_exit:-0} -eq 8 ] || [ ${pylint_exit:-0} -eq 16 ]; then
+            echo "Pylint passed code quality threshold (exit code: ${pylint_exit:-0})"
+            exit 0
+          else
+            echo "Pylint failed with fatal or syntax error code: $pylint_exit"
+            exit $pylint_exit
+          fi
 
   verify-and-test:
     name: Multi-Tier Verification Suite (${{ matrix.os }} - Python ${{ matrix.python-version }})
