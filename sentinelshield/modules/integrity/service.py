@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from typing import Any
-from modules.integrity.hash_chain import HashChainManager, sha256_bytes
-from modules.integrity.tamper_detector import TamperDetector, is_black_frame, frame_difference_score
+from modules.integrity.hash_chain import HashChainManager
+from modules.integrity.tamper_detector import TamperDetector
 
 
 class IntegrityService:

@@ -329,7 +329,7 @@ class DatabaseManager:
                     con.execute(f"DELETE FROM {tbl};")
                 con.execute("DELETE FROM cameras WHERE kind='registry' OR id LIKE 'gov-%';")
                 con.commit()
-            with open(os.path.join(settings.data_dir, ".no_seed"), "w") as f:
+            with open(os.path.join(settings.data_dir, ".no_seed"), "w", encoding="utf-8") as f:
                 f.write("")
 
 

@@ -28,11 +28,15 @@ jobs:
       - name: Install Linting & Core Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install reportlab numpy pillow pytest
+          pip install -r sentinelshield/requirements.txt
 
       - name: Run AST Syntax Compilation & Anti-Pattern Linter
         run: |
           python sentinelshield/tests/test_code_quality_and_lints.py
+
+      - name: Run Pylint Code Quality Audit
+        run: |
+          python -m pylint sentinelshield/modules/ sentinelshield/core/ sentinelshield/app.py --rcfile=.pylintrc
 
   verify-and-test:
     name: Multi-Tier Verification Suite (${{ matrix.os }} - Python ${{ matrix.python-version }})
@@ -57,7 +61,7 @@ jobs:
       - name: Install Runtime Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install reportlab numpy pillow pytest
+          pip install -r sentinelshield/requirements.txt
 
       - name: Execute Full Verification Suite
         run: |

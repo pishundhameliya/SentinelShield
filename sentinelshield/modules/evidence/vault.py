@@ -38,7 +38,7 @@ class EvidenceVaultService:
         raw = json.dumps(payload, sort_keys=True).encode()
         digest = sha256_bytes(raw)
         path = os.path.join(vault_dir, f"{camera_id}_{digest[:10]}.json")
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump({"payload": payload, "sha256": digest}, f, indent=2)
 
         eid = "evd-" + uuid.uuid4().hex[:8]

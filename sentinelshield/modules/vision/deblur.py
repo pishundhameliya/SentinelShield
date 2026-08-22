@@ -28,44 +28,62 @@ def enhance_blurry_crop(crop: np.ndarray) -> dict[str, Any]:
 
     # 1. Bicubic Rescaling / Upscaling if low resolution
     scale = 1.0
+    inter_cubic = getattr(cv2, "INTER_CUBIC", 2)
     if h < 90 or w < 220:
         scale = 2.0
         new_w, new_h = int(w * scale), int(h * scale)
-        crop_upscaled = cv2.resize(crop, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+        if hasattr(cv2, "resize"):
+            crop_upscaled = cv2.resize(crop, (new_w, new_h), interpolation=inter_cubic)
+        else:
+            crop_upscaled = crop.copy()
     else:
         crop_upscaled = crop.copy()
 
     # 2. CLAHE (Contrast Limited Adaptive Histogram Equalization) in LAB space
-    lab = cv2.cvtColor(crop_upscaled, cv2.COLOR_BGR2LAB)
-    l, a, b = cv2.split(lab)
-    clahe = cv2.createCLAHE(clipLimit=3.5, tileGridSize=(8, 8))
-    cl = clahe.apply(l)
-    enhanced_lab = cv2.merge((cl, a, b))
-    enhanced_bgr = cv2.cvtColor(enhanced_lab, cv2.COLOR_LAB2BGR)
+    color_bgr2lab = getattr(cv2, "COLOR_BGR2LAB", 44)
+    color_lab2bgr = getattr(cv2, "COLOR_LAB2BGR", 56)
+    color_bgr2gray = getattr(cv2, "COLOR_BGR2GRAY", 6)
+    adaptive_thresh = getattr(cv2, "ADAPTIVE_THRESH_GAUSSIAN_C", 1)
+    thresh_bin = getattr(cv2, "THRESH_BINARY", 0)
+    cv_64f = getattr(cv2, "CV_64F", 6)
+    jpeg_qual = getattr(cv2, "IMWRITE_JPEG_QUALITY", 1)
 
-    # 3. Unsharp Masking & Sharpening Filter (Deblurring)
-    blur = cv2.GaussianBlur(enhanced_bgr, (0, 0), sigmaX=3.0)
-    sharpened_bgr = cv2.addWeighted(enhanced_bgr, 1.8, blur, -0.8, 0)
+    try:
+        lab = cv2.cvtColor(crop_upscaled, color_bgr2lab)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=3.5, tileGridSize=(8, 8))
+        cl = clahe.apply(l)
+        enhanced_lab = cv2.merge((cl, a, b))
+        enhanced_bgr = cv2.cvtColor(enhanced_lab, color_lab2bgr)
 
-    # 4. Grayscale & Adaptive Thresholding
-    gray = cv2.cvtColor(sharpened_bgr, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-    )
+        # 3. Unsharp Masking & Sharpening Filter (Deblurring)
+        blur = cv2.GaussianBlur(enhanced_bgr, (0, 0), sigmaX=3.0)
+        sharpened_bgr = cv2.addWeighted(enhanced_bgr, 1.8, blur, -0.8, 0)
 
-    # 5. Measure Sharpness / Laplacian Variance Score
-    laplacian_var = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+        # 4. Grayscale & Adaptive Thresholding
+        gray = cv2.cvtColor(sharpened_bgr, color_bgr2gray)
+        thresh = cv2.adaptiveThreshold(
+            gray, 255, adaptive_thresh, thresh_bin, 11, 2
+        )
 
-    # Encode enhanced crop to JPEG Base64 for web rendering
-    ok, buf = cv2.imencode(".jpg", sharpened_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
-    b64_str = base64.b64encode(buf.tobytes()).decode("ascii") if ok else ""
+        # 5. Measure Sharpness / Laplacian Variance Score
+        laplacian_var = float(cv2.Laplacian(gray, cv_64f).var())
+
+        # Encode enhanced crop to JPEG Base64 for web rendering
+        ok, buf = cv2.imencode(".jpg", sharpened_bgr, [int(jpeg_qual), 85])
+        b64_str = base64.b64encode(buf.tobytes()).decode("ascii") if ok else ""
+    except Exception:
+        sharpened_bgr = crop
+        thresh = crop
+        laplacian_var = 0.0
+        b64_str = ""
 
     return {
         "enhanced_bgr": sharpened_bgr,
         "thresh_gray": thresh,
-        "b64": f"data:image/jpeg;base64,{b64_str}",
+        "b64": f"data:image/jpeg;base64,{b64_str}" if b64_str else "",
         "laplacian_score": round(laplacian_var, 2),
-        "scale_applied": round(scale, 2),
+        "scale_applied": scale,
     }
 
 

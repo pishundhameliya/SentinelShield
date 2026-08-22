@@ -2,8 +2,12 @@ fastapi>=0.115.0
 uvicorn>=0.34.0
 python-multipart>=0.0.20
 opencv-python-headless
-numpy
-pillow
+numpy>=1.24.0
+pillow>=10.0.0
+reportlab>=4.0.0
 pytesseract
 fast-alpr[onnx]>=0.4.0
-
+pytest>=8.0.0
+pylint>=3.0.0
+httpx>=0.27.0
+requests>=2.31.0

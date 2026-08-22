@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import unittest
+from typing import Any
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
@@ -122,6 +123,19 @@ class TestCodeQualityAndLintSanity(unittest.TestCase):
             except Exception as e:
                 self.fail(f"Circular dependency or import failure in {mod_name}: {e}")
         print(f"[PASS] Package Sanity: All {len(modules_to_test)} domain subsystems import cleanly & acyclically!")
+
+    def test_requirements_file_validity(self):
+        """Ensure requirements.txt exists and contains necessary runtime, testing, and linting packages."""
+        req_path = os.path.join(BASE_DIR, "requirements.txt")
+        self.assertTrue(os.path.exists(req_path), "sentinelshield/requirements.txt must exist")
+
+        with open(req_path, "r", encoding="utf-8") as f:
+            content = f.read().lower()
+
+        required_packages = ["fastapi", "uvicorn", "numpy", "reportlab", "pytest", "pylint"]
+        for pkg in required_packages:
+            self.assertIn(pkg, content, f"requirements.txt missing required package '{pkg}'")
+        print(f"[PASS] Requirements Validation: requirements.txt contains all core runtime & test dependencies {required_packages}!")
 
 
 if __name__ == "__main__":

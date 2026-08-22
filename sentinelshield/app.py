@@ -28,7 +28,7 @@ from modules.vision.router import router as vision_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Application lifecycle manager initializing DB schema and background daemons."""
     db_manager.init_schema(
         cities_data=CITIES,
@@ -49,6 +49,7 @@ app = FastAPI(title="SentinelShield", lifespan=lifespan)
 
 @app.middleware("http")
 async def preview_headers(request: Request, call_next):
+    """Add security and iframe embedding headers to all HTTP responses."""
     resp = await call_next(request)
     resp.headers["Content-Security-Policy"] = "frame-ancestors *"
     resp.headers["Access-Control-Allow-Origin"] = "*"
@@ -62,6 +63,7 @@ app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 
 @app.get("/")
 def home():
+    """Serve Gujarat Command Desk UI portal index page."""
     return FileResponse(os.path.join(settings.static_dir, "index.html"))
 
 
@@ -80,5 +82,5 @@ app.include_router(relay_router)
 
 
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn  # pylint: disable=import-error
     uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)

@@ -25,7 +25,14 @@ from modules.vision.alpr_ocr import normalize_plate, extract_plates_from_text, d
 from modules.vision.service import vision_service
 from modules.tracking.tracker import CentroidVehicleTracker
 from modules.alerts.fusion import translate_alert, LANG
+from modules.registry.estate_data import CITIES, DEMO_CAMS, sample_points
 
+# Initialize database schema and seeds for test suite
+db_manager.init_schema(
+    cities_data=CITIES,
+    demo_cams_data=DEMO_CAMS,
+    sample_points_fn=sample_points,
+)
 
 client = TestClient(app)
 

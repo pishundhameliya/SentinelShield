@@ -5,7 +5,7 @@ import uuid
 from typing import Any
 
 from core.database import db_manager
-from modules.registry.estate_data import CITIES, DEMO_CAMS, SENTINEL_LIVE_CAMS, sample_points, total_cameras
+from modules.registry.estate_data import SENTINEL_LIVE_CAMS
 
 
 class RegistryService:

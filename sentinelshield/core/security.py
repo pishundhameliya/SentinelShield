@@ -11,12 +11,16 @@ from config import settings
 class SessionManager:
     """Thread-safe user session and token manager."""
 
-    def __init__(self, users: dict[str, dict[str, Any]] = settings.users):
-        self._users = users
+    def __init__(self, users: dict[str, dict[str, Any]] | None = None):
+        self._users = users if users is not None else settings.users
         self._sessions: dict[str, dict[str, Any]] = {}
         self._lock = threading.RLock()
 
-    def authenticate(self, username: str, password: str) -> tuple[str | None, dict[str, Any] | None]:
+    def authenticate(
+        self,
+        username: str,
+        password: str,
+    ) -> tuple[str | None, dict[str, Any] | None]:
         """Authenticate user credentials and return (session_token, user_dict)."""
         uname = (username or "").strip().lower()
         user_info = self._users.get(uname)

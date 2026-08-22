@@ -6,7 +6,7 @@ import io
 import uuid
 from typing import Any
 
-from core.database import db_manager, utcnow
+from core.database import db_manager
 from modules.registry.estate_data import CITIES
 
 # Bounding box coordinates for Gujarat State
@@ -67,22 +67,22 @@ def import_cameras_from_csv(csv_content: str, duplicate_mode: str = "update") ->
             continue
         total_rows += 1
 
-        def get_val(field_name: str, default: str = "") -> str:
+        def _get_val(r: list[str], field_name: str, default: str = "") -> str:
             idx = header_map.get(field_name)
-            if idx is not None and idx < len(row):
-                return row[idx].strip()
+            if idx is not None and idx < len(r):
+                return r[idx].strip()
             return default
 
-        cam_name = get_val("name") or f"Camera {row_idx}"
-        cam_id = get_val("id") or ("cam-" + uuid.uuid4().hex[:8])
-        city = get_val("city", "ahmedabad").lower()
-        area = get_val("area", "Command Zone")
-        live_url = get_val("live_url", "")
-        owner = get_val("owner", "government").lower()
+        cam_name = _get_val(row, "name") or f"Camera {row_idx}"
+        cam_id = _get_val(row, "id") or ("cam-" + uuid.uuid4().hex[:8])
+        city = _get_val(row, "city", "ahmedabad").lower()
+        area = _get_val(row, "area", "Command Zone")
+        live_url = _get_val(row, "live_url", "")
+        owner = _get_val(row, "owner", "government").lower()
 
         # Coordinate parsing & bounds validation
-        raw_lat = get_val("lat")
-        raw_lng = get_val("lng")
+        raw_lat = _get_val(row, "lat")
+        raw_lng = _get_val(row, "lng")
 
         city_map = {c["id"]: c for c in CITIES} if isinstance(CITIES, list) else CITIES
         city_def = city_map.get(city) or city_map.get("ahmedabad", {"lat": 23.0225, "lng": 72.5714})
@@ -99,7 +99,6 @@ def import_cameras_from_csv(csv_content: str, duplicate_mode: str = "update") ->
             lng = float(city_def["lng"])
 
         place = f"{area}, {city.capitalize()}"
-        created = utcnow()
         status = "ready"
 
         cameras_to_insert.append((

@@ -1,6 +1,8 @@
 """Computer vision signal analysis for blackout, freeze, and loop tamper detection."""
 from __future__ import annotations
 
+from typing import Any
+
 try:
     import cv2
 except ImportError:

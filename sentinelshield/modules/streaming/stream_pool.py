@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import os
-import sys
-import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class StreamWorkerPool:
@@ -27,7 +25,7 @@ class StreamWorkerPool:
         """Compute optimal downscale resolution for background AI/tamper processing."""
         if total_streams > 100:
             return (320, 180)
-        elif total_streams > 50:
+        if total_streams > 50:
             return (480, 270)
         return (640, 360)
 

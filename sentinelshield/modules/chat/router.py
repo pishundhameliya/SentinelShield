@@ -1,7 +1,8 @@
 """API and WebSocket Router for real-time team chat."""
 from __future__ import annotations
 
-import uuid
+from typing import Any
+
 try:
     from fastapi import APIRouter, Form, WebSocket, WebSocketDisconnect
 except ImportError:

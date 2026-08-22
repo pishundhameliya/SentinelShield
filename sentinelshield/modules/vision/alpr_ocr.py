@@ -1,7 +1,6 @@
 """Fast-ALPR, Plate Candidate Extraction, and OCR Character Recognition."""
 from __future__ import annotations
 
-import os
 import re
 import threading
 from typing import Any
@@ -158,7 +157,7 @@ def read_plate_text(plate_crop: np.ndarray) -> tuple[str | None, float]:
 
     # 1. Try Open-LPR API endpoint
     try:
-        import requests
+        import requests  # pylint: disable=import-error
         ok, buf = cv2.imencode(".jpg", plate_crop)
         if ok:
             resp = requests.post(
@@ -180,7 +179,7 @@ def read_plate_text(plate_crop: np.ndarray) -> tuple[str | None, float]:
 
     # 2. Fallback to local pytesseract
     try:
-        import pytesseract
+        import pytesseract  # pylint: disable=import-error
         gray = cv2.cvtColor(plate_crop, cv2.COLOR_BGR2GRAY)
         gray = cv2.resize(gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
         gray = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]

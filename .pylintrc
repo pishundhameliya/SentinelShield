@@ -1,0 +1,50 @@
+[MAIN]
+py-version = 3.10
+ignore = migrations, .git, venv, .venv, __pycache__
+ignore-patterns = test_.*\.py, pytest\.py
+extension-pkg-allow-list = cv2, numpy
+
+[MESSAGES CONTROL]
+disable =
+    R0801,
+    duplicate-code,
+    missing-function-docstring,
+    missing-class-docstring,
+    missing-module-docstring,
+    broad-exception-caught,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-many-return-statements,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-instance-attributes,
+    too-few-public-methods,
+    too-many-nested-blocks,
+    import-outside-toplevel,
+    wrong-import-position,
+    invalid-name,
+    unused-argument,
+    redefined-outer-name,
+    multiple-statements,
+    unnecessary-lambda-assignment,
+    global-statement,
+    line-too-long,
+    trailing-whitespace,
+    import-error,
+    fixme
+
+[TYPECHECK]
+generated-members = cv2.*, numpy.*, np.*
+ignored-modules = cv2, fast_alpr, torch, fastapi, pytesseract, requests, uvicorn
+
+[FORMAT]
+max-line-length = 120
+max-module-lines = 2000
+
+[SIMILARITIES]
+min-similarity-lines = 50
+ignore-comments = yes
+ignore-docstrings = yes
+ignore-imports = yes
+ignore-signatures = yes

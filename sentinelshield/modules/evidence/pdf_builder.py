@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 import io
-import os
 import json
+import os
 from typing import Any
-
-from config import settings
 
 
 def generate_courtroom_pdf_brief(evidence_pack: dict[str, Any], output_path: str | None = None) -> bytes:
@@ -125,14 +123,14 @@ def generate_courtroom_pdf_brief(evidence_pack: dict[str, Any], output_path: str
 
         # 3. Cryptographic Proof Block with QR Code
         elements.append(Paragraph("Forensic Hash Manifest (Chain-of-Custody)", section_heading))
-        
+
         qr_data = json.dumps({
             "id": evidence_id,
             "cam": camera_id,
             "sha256": sha256_digest,
             "ts": created_time,
         }, separators=(",", ":"))
-        
+
         qr_code = qr.QrCodeWidget(qr_data)
         qr_code.barWidth = 80
         qr_code.barHeight = 80
@@ -196,7 +194,7 @@ def generate_courtroom_pdf_brief(evidence_pack: dict[str, Any], output_path: str
 
         return pdf_bytes
 
-    except Exception as e:
+    except Exception:
         # Fallback minimal RFC-compliant PDF generator
         raw_pdf = f"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Contents 4 0 R>>endobj\n4 0 obj<</Length 120>>stream\nBT /F1 12 Tf 50 700 Td (SENTINEL-X FORENSIC CERTIFICATE: {evidence_pack.get('id', 'EVD')}) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f\n0000000009 00000 n\n0000000056 00000 n\n0000000111 00000 n\n0000000212 00000 n\ntrailer<</Size 5/Root 1 0 R>>\nstartxref\n380\n%%EOF".encode("latin1")
         if output_path:

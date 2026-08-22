@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any, Generator, Optional
+from typing import Generator
 
 try:
     import cv2
@@ -17,7 +17,7 @@ except ImportError:
 
 from core.database import db_manager, utcnow
 from core.state import live_stream_state, tracking_state
-from modules.streaming.hw_accel import create_hw_videocapture
+from modules.streaming.hw_accel import create_hw_videocapture, safe_release_capture
 from modules.streaming.stream_pool import StreamWorkerPool
 from modules.tracking.tracker import CentroidVehicleTracker
 from modules.vision.alpr_ocr import (
@@ -273,9 +273,8 @@ def mjpeg_frame_generator(
 
     while live_stream_state.is_active and live_stream_state.current_camera_id == camera_id:
         cap = None
-        backend_name = "software"
         try:
-            cap, backend_name = create_hw_videocapture(path, preferred_accel=preferred_accel)
+            cap, _backend = create_hw_videocapture(path, preferred_accel=preferred_accel)
         except Exception:
             try:
                 cap = cv2.VideoCapture(path) if cv2 is not None else None
@@ -283,12 +282,8 @@ def mjpeg_frame_generator(
                 cap = None
 
         if cap is None or not cap.isOpened():
-            if cap is not None:
-                try:
-                    cap.release()
-                except Exception:
-                    pass
-                cap = None
+            safe_release_capture(cap)
+            cap = None
 
             if loop_file:
                 # If local file is missing/unreadable, yield single diagnostic error and exit
@@ -381,7 +376,7 @@ def mjpeg_frame_generator(
                 if not ok:
                     continue
 
-                chunk = (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpg.tobytes() + b"\r\n")
+                chunk = b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpg.tobytes() + b"\r\n"
 
                 t_yield_start = time.time()
                 yield chunk
@@ -394,12 +389,8 @@ def mjpeg_frame_generator(
                     delivery_latency_ms = max(0.0, (t_yield_end - t_yield_start) * 1000.0)
                     ema_latency_ms = 0.7 * ema_latency_ms + 0.3 * delivery_latency_ms
         finally:
-            if cap is not None:
-                try:
-                    cap.release()
-                except Exception:
-                    pass
-                cap = None
+            safe_release_capture(cap)
+            cap = None
 
         # Check if stream ended because user stopped it or switched cameras
         if not (live_stream_state.is_active and live_stream_state.current_camera_id == camera_id):

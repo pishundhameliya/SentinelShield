@@ -1,10 +1,9 @@
 """Tracking Service for sightings, vehicle queries, and route reconstruction."""
 from __future__ import annotations
 
-import uuid
 from typing import Any
 
-from core.database import db_manager, utcnow
+from core.database import db_manager
 from modules.vision.alpr_ocr import normalize_plate
 
 
