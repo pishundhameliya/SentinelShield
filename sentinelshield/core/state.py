@@ -6,8 +6,15 @@ import threading
 import time
 from typing import Any
 
-import numpy as np
-from fastapi import WebSocket
+try:
+    import numpy as np
+except ImportError:
+    np = None  # type: ignore
+
+try:
+    from fastapi import WebSocket
+except ImportError:
+    WebSocket = Any  # type: ignore
 
 
 class LiveStreamState:

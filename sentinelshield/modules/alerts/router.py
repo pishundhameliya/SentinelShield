@@ -1,7 +1,17 @@
 """API Router for alerts, watchlist CRUD, and demonstration threat triggers."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Form
+try:
+    from fastapi import APIRouter, Form
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    Form = lambda default=None, **kw: default  # type: ignore
+
 from modules.alerts.service import alert_service
 
 router = APIRouter(tags=["alerts"])
@@ -39,4 +49,23 @@ def demo_panic():
 @router.post("/api/demo/abandoned")
 def demo_abandoned():
     alert_service.trigger_demo_abandoned()
+    return {"ok": True}
+
+
+@router.post("/api/webhooks")
+def register_webhook(url: str = Form(...), secret: str = Form(""), events: str = Form("all")):
+    from modules.alerts.webhooks import webhook_dispatch_service
+    return webhook_dispatch_service.register_webhook(url=url, secret=secret or None, events=events)
+
+
+@router.get("/api/webhooks")
+def list_webhooks():
+    from modules.alerts.webhooks import webhook_dispatch_service
+    return {"webhooks": webhook_dispatch_service.list_webhooks()}
+
+
+@router.delete("/api/webhooks/{wid}")
+def delete_webhook(wid: str):
+    from modules.alerts.webhooks import webhook_dispatch_service
+    webhook_dispatch_service.delete_webhook(wid)
     return {"ok": True}

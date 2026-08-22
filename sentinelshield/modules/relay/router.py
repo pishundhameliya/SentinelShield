@@ -2,9 +2,20 @@
 from __future__ import annotations
 
 import os
-import time
-from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse, JSONResponse, Response
+try:
+    from fastapi import APIRouter, Request
+    from fastapi.responses import FileResponse, JSONResponse, Response
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    JSONResponse = dict  # type: ignore
+    FileResponse = object  # type: ignore
+    Response = object  # type: ignore
+    Request = Any  # type: ignore
 
 from config import settings
 from core.state import relay_state

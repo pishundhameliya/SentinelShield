@@ -6,7 +6,10 @@ import os
 import uuid
 from typing import Any
 
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore
 
 from core.database import db_manager, utcnow
 from modules.integrity.hash_chain import HashChainManager, sha256_bytes

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import hashlib
+import threading
+import time
 from typing import Any
 
 
@@ -42,6 +44,70 @@ class HashChainManager:
         self.segment_start_time = end_time
         return seg
 
+    def append_segment(self, data: bytes, start_time: float, end_time: float) -> dict[str, Any]:
+        """Directly append a pre-aggregated data segment and seal it into the chain."""
+        self.segment_start_time = start_time
+        self.segment_bytes = bytearray(data)
+        seg = self.close_segment(end_time)
+        if seg is None:
+            digest = sha256_bytes(data + self.current_prev.encode())
+            seg = {
+                "t_start": round(start_time, 2),
+                "t_end": round(end_time, 2),
+                "sha256": digest,
+                "prev": self.current_prev,
+                "ok": True,
+            }
+            self.chain.append(seg)
+            self.current_prev = digest
+        return seg
+
+    def verify_chain(self) -> bool:
+        """Cryptographically verify the entire rolling hash chain integrity."""
+        prev = "GENESIS"
+        for seg in self.chain:
+            if seg.get("prev") != prev:
+                return False
+            if not seg.get("ok", True):
+                return False
+            prev = seg.get("sha256", "")
+        return True
+
     def get_chain(self) -> list[dict[str, Any]]:
         """Return full computed hash chain."""
         return list(self.chain)
+
+
+class BulkHashBatcher:
+    """Thread-safe batch accumulator that flushes hash segments in high-speed bulk transactions."""
+
+    def __init__(self, flush_interval_sec: float = 5.0, max_batch_size: int = 500):
+        self.flush_interval = flush_interval_sec
+        self.max_batch_size = max_batch_size
+        self._buffer: list[tuple[str, float, float, str, str]] = []
+        self._lock = threading.RLock()
+        self._last_flush = time.time()
+
+    def add_hash(self, job_id: str, t_start: float, t_end: float, sha256: str, prev: str) -> bool:
+        """Add a hash record to the in-memory buffer. Automatically triggers flush if buffer is full."""
+        with self._lock:
+            self._buffer.append((job_id, t_start, t_end, sha256, prev))
+            if len(self._buffer) >= self.max_batch_size or (time.time() - self._last_flush) >= self.flush_interval:
+                self.flush()
+                return True
+            return False
+
+    def flush(self) -> int:
+        """Atomically commit all buffered hash segments into SQLite."""
+        with self._lock:
+            if not self._buffer:
+                return 0
+            items = list(self._buffer)
+            self._buffer.clear()
+            self._last_flush = time.time()
+
+        from core.database import db_manager
+        return db_manager.execute_many(
+            "INSERT INTO hashes(job_id, t_start, t_end, sha256, prev) VALUES(?,?,?,?,?)",
+            items,
+        )

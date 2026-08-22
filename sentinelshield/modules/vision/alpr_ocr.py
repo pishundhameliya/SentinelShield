@@ -6,8 +6,15 @@ import re
 import threading
 from typing import Any
 
-import cv2
-import numpy as np
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore
+
+try:
+    import numpy as np
+except ImportError:
+    np = None  # type: ignore
 
 from config import settings
 from modules.vision.deblur import enhance_blurry_crop

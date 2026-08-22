@@ -2,8 +2,16 @@
 from __future__ import annotations
 
 from typing import Any
-import cv2
-import numpy as np
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore
+
+try:
+    import numpy as np
+except ImportError:
+    np = None  # type: ignore
 
 
 def detect_vehicles(frame: np.ndarray, prev_gray: np.ndarray | None = None) -> list[dict[str, Any]]:

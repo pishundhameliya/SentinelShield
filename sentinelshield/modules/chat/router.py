@@ -2,7 +2,19 @@
 from __future__ import annotations
 
 import uuid
-from fastapi import APIRouter, Form, WebSocket, WebSocketDisconnect
+try:
+    from fastapi import APIRouter, Form, WebSocket, WebSocketDisconnect
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+        def websocket(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    Form = lambda default=None, **kw: default  # type: ignore
+    WebSocket = Any  # type: ignore
+    WebSocketDisconnect = Exception  # type: ignore
 
 from core.database import utcnow
 from core.security import session_manager

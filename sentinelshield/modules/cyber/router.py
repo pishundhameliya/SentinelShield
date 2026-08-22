@@ -1,7 +1,16 @@
 """API Router for cybersecurity honeypot traps and attack logs."""
 from __future__ import annotations
 
-from fastapi import APIRouter
+try:
+    from fastapi import APIRouter
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+
 from modules.cyber.honeypot import cyber_service
 
 router = APIRouter(tags=["cyber"])

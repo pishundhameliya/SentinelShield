@@ -1,8 +1,18 @@
 """API Router for estate exploration, camera registry, and live links."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Form
-from fastapi.responses import JSONResponse
+try:
+    from fastapi import APIRouter, Form
+    from fastapi.responses import JSONResponse
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    JSONResponse = dict  # type: ignore
+    Form = lambda default=None, **kw: default  # type: ignore
 
 from core.database import db_manager
 from core.state import ai_state
@@ -80,6 +90,13 @@ def connect_live(camera_id: str, live_url: str = Form(...)):
 
     registry_service.connect_camera_url(camera_id, url)
     return {"ok": True, "camera_id": camera_id}
+
+
+@router.post("/api/cameras/import-csv")
+def import_cameras_csv(csv_text: str = Form(""), mode: str = Form("update")):
+    """Bulk import cameras from CSV spreadsheet."""
+    from modules.registry.importer import import_cameras_from_csv
+    return import_cameras_from_csv(csv_text, duplicate_mode=mode)
 
 
 @router.post("/api/purge-static-data")

@@ -10,7 +10,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import settings
-from core.database import db_manager
+from core.database import db_maintenance_daemon, db_manager
+from modules.alerts.webhooks import webhook_dispatch_service
 from modules.alerts.router import router as alerts_router
 from modules.auth.router import router as auth_router
 from modules.chat.router import router as chat_router
@@ -35,7 +36,11 @@ async def lifespan(app: FastAPI):
         sample_points_fn=sample_points,
     )
     ai_guardian_daemon.start()
+    db_maintenance_daemon.start()
+    webhook_dispatch_service.start_worker()
     yield
+    webhook_dispatch_service.stop_worker()
+    db_maintenance_daemon.stop()
     ai_guardian_daemon.stop()
 
 

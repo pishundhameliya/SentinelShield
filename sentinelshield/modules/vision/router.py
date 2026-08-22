@@ -1,9 +1,22 @@
 """API router for live ANPR scanning and deblurred plate recognition."""
 from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-import cv2
+try:
+    from fastapi import APIRouter
+    from fastapi.responses import JSONResponse
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    JSONResponse = dict  # type: ignore
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore
 
 from core.database import db_manager
 from core.state import live_stream_state

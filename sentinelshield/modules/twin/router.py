@@ -1,7 +1,17 @@
 """API Router for Digital Twin analytics, heatmaps, assistant, and persons."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Form
+try:
+    from fastapi import APIRouter, Form
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    Form = lambda default=None, **kw: default  # type: ignore
+
 from core.database import db_manager
 from modules.twin.assistant import assistant_service
 from modules.twin.heat import digital_twin_service
