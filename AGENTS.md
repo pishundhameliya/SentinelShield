@@ -21,7 +21,8 @@ This project is connected to the **costwise** MCP server. Its tools keep the ses
 # Context & Protocols for AI Coding Agents
 
 > Project: **SentinelShield (Sentinel-X Gujarat Command Desk)**  
-> Architecture: **Modular Domain Subsystems with SQLite WAL Concurrency & High-Density Streaming (200+ Feeds)**
+> Architecture: **Modular Domain Subsystems with SQLite WAL Concurrency & High-Density Streaming (200+ Feeds)**  
+> Governance: **[Engineering & Agent Governance Policy](docs/ENGINEERING_POLICY.md)** (Mandatory standard for all agents)
 
 ---
 
