@@ -1,7 +1,22 @@
 """API routes for cybersecurity monitoring and the isolated CCTV decoy."""
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+try:
+    from fastapi import APIRouter, HTTPException, Request
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    class HTTPException(Exception):  # type: ignore
+        def __init__(self, status_code: int = 400, detail: str = ""):
+            self.status_code = status_code
+            self.detail = detail
+    class Request:  # type: ignore
+        client = None
+
 from modules.cyber.honeypot import cyber_service
 
 router = APIRouter(tags=["cyber"])

@@ -4,8 +4,15 @@ from __future__ import annotations
 import base64
 from typing import Any
 
-import cv2
-import numpy as np
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore
+
+try:
+    import numpy as np
+except ImportError:
+    np = None  # type: ignore
 
 
 def enhance_blurry_crop(crop: np.ndarray) -> dict[str, Any]:

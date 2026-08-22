@@ -117,7 +117,7 @@ SENTINEL_LIVE_CAMS = [
         "kind": "live",
         "status": "online",
         "live_url": f"https://live.corp8.cloud/camera/{number}",
-        "source": "",
+        "source": f"rtsp://live.corp8.cloud:8554/stream/{number}",
     }
     for number in range(1, 32)
 ]

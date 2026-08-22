@@ -6,9 +6,22 @@ import os
 import uuid
 from typing import Any
 
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-import cv2
+try:
+    from fastapi import APIRouter
+    from fastapi.responses import JSONResponse
+except ImportError:
+    class _MockAPIRouter:
+        def __init__(self, *args, **kwargs): pass
+        def post(self, *args, **kwargs): return lambda f: f
+        def get(self, *args, **kwargs): return lambda f: f
+        def delete(self, *args, **kwargs): return lambda f: f
+    APIRouter = _MockAPIRouter  # type: ignore
+    JSONResponse = dict  # type: ignore
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore
 
 from config import settings
 from core.database import db_manager
@@ -31,9 +44,11 @@ def _collect_camera_source_candidates(camera_id: str, cam: dict[str, Any] | None
     number = camera_id.rsplit("-", 1)[-1] if camera_id.startswith("sentinel-cam-") else ""
     if number.isdigit():
         for path in (
+            f"https://live.corp8.cloud/camera/{number}",
+            f"https://live.corp8.cloud/stream/{number}",
+            f"rtsp://live.corp8.cloud:8554/stream/{number}",
             f"https://live.sentinelgujarat.in/camera/{number}",
             f"https://live.sentinelgujarat.in/stream/{number}",
-            f"https://live.sentinelgujarat.in/stream?camera={number}",
             f"http://live.sentinelgujarat.in/camera/{number}",
             f"http://live.sentinelgujarat.in/stream/{number}",
         ):
@@ -52,6 +67,8 @@ def _read_frame_from_demo_fallback() -> Any:
     demo_candidates = sorted(glob.glob(os.path.join(settings.demos_dir, "*.mp4")))
     for demo_path in demo_candidates:
         try:
+            if cv2 is None:
+                break
             cap = cv2.VideoCapture(demo_path)
             if not cap.isOpened():
                 cap.release()
@@ -79,7 +96,7 @@ def scan_live_anpr(camera_id: str):
     if live_stream_state.is_active and live_stream_state.current_camera_id == camera_id:
         frame = live_stream_state.get_frame()
 
-    if frame is None:
+    if frame is None and cv2 is not None:
         for source in _collect_camera_source_candidates(camera_id, cam):
             if not source:
                 continue
@@ -101,8 +118,8 @@ def scan_live_anpr(camera_id: str):
     if frame is None:
         return JSONResponse({"error": "Could not capture a frame from the selected camera source"}, 400)
 
-    result = vision_service.process_frame_anpr(frame, camera_id, cam.get("name", camera_id))
-    note = f"ANPR scan complete · {len(result['vehicles'])} vehicles · {len(result['plates_enhanced'])} plates read · Photo saved at {result['timestamp']}"
+    result = vision_service.process_scan_frame(frame, camera_id, cam.get("name", camera_id))
+    note = f"Scanned: {len(result['vehicles'])} vehicles, {len(result['plates_enhanced'])} plates"
     if db_manager.query_one("SELECT id FROM cameras WHERE id=?", camera_id):
         db_manager.execute("UPDATE cameras SET last_note=? WHERE id=?", note, camera_id)
 
