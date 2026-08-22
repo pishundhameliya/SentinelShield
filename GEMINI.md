@@ -14,7 +14,7 @@ SentinelShield is optimized for Gemini Antigravity's multi-agent orchestration, 
 ### Custom Slash Commands
 | Command | Action | Execution Target |
 | :--- | :--- | :--- |
-| `/verify` | Run all 12 unit, integration, and stress benchmark suites | `python verify.py` |
+| `/verify` | Run all 13 unit, integration, and stress benchmark suites | `python verify.py` |
 | `/benchmark` | Run 50, 100, and 200 concurrent stream scaling tests | `python sentinelshield/tests/benchmark_200_streams.py` |
 | `/sync-estate` | Pull live camera feeds from `live.corp8.cloud` & sync SQLite DB | `python sentinelshield/fetch_31.py && python sentinelshield/import_all_31_cams.py` |
 
