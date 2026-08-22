@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "costwise": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "costwise-mcp"
+      ],
+      "env": {
+        "COSTWISE_WORKSPACE": "${workspaceFolder}"
+      },
+      "description": "CostWise MCP Server \u2014 AST symbol indexing, code search, and context stashing"
+    }
+  }
+}
