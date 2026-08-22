@@ -1,0 +1,12 @@
+# Windsurf Cascade Rules for SentinelShield
+
+## Architectural Context
+- Modular FastAPI backend with 12 domain subsystems under `sentinelshield/modules/`.
+- Concurrency model: SQLite in WAL mode (`PRAGMA journal_mode=WAL;`, `busy_timeout=10000;`), centralized thread-safe state in `core/state.py`.
+- Real-time video engine: Multi-process `StreamWorkerPool`, adaptive client backpressure, zero-allocation `MultiCameraTamperPool`, and rolling SHA-256 hash chains.
+
+## Coding Conventions
+1. Always use parameterized queries (`?`) in `core.database.db_manager`.
+2. Keep route files thin (`modules/<domain>/router.py`) and delegate business logic to `modules/<domain>/service.py`.
+3. Offload blocking disk writes and cryptography in async route handlers using `loop.run_in_executor(None, ...)`.
+4. Ensure all unit and benchmark tests pass by running `python verify.py`.
