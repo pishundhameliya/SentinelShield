@@ -54,6 +54,13 @@ Code is strictly segregated into domain subsystems inside `sentinelshield/module
 ### C. Backward Compatibility Guarantee
 - `engine.py` and `gujarat_estate.py` must maintain re-exports of all legacy symbols (`detect_vehicles`, `normalize_plate`, `extract_plate_candidate`, `process_video`, `CITIES`, `DEMO_CAMS`, `sample_points`, etc.) so external scripts continue to run without modification.
 
+### D. Root README.md PR Invariant
+- The root `README.md` must remain 100% clean and untouched when submitting PRs to upstream (`pishundhameliya/SentinelShield`).
+- All technical documentation, governance protocols, and subsystem maps must be placed in `docs/` or dedicated platform files (`GEMINI.md`, `PROJECT.md`, `TEST_INFRA.md`).
+
+### E. Zero-Dependency cv2.py Compatibility Shim Invariant
+- Any newly introduced OpenCV function, constant, or filter must be mirrored in `sentinelshield/cv2.py` with valid ndarray return shapes to ensure 100% test passing in headless test runners.
+
 ---
 
 ## 2. Tool Selection Hierarchy
