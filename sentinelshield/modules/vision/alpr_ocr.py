@@ -28,7 +28,19 @@ _fast_alpr_unavailable = False
 
 def normalize_plate(p: str) -> str:
     """Normalize alphanumeric plate characters to standard uppercase format."""
-    return re.sub(r"[^A-Z0-9]", "", (p or "").upper())
+    cleaned = re.sub(r"[^A-Z0-9]", "", (p or "").upper())
+    if not cleaned:
+        return ""
+
+    match = re.search(r"([A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4})", cleaned)
+    if match:
+        return match.group(1)
+
+    # Fallback: preserve the central plate token while removing obvious country prefixes.
+    stripped = re.sub(r"^(IND|IN|USA|UK|US|GB)", "", cleaned)
+    if stripped:
+        return stripped
+    return cleaned
 
 
 def extract_plates_from_text(*texts: str) -> list[str]:

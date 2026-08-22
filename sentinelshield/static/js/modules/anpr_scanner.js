@@ -37,6 +37,37 @@
     } catch (e) {}
   }
 
+  function renderVehicleRowsFromScan(result) {
+    const rows = $("live-vehicle-rows");
+    const count = $("live-vehicle-count");
+    if (count) {
+      count.textContent = String((result && result.vehicles ? result.vehicles.length : 0));
+    }
+    if (!rows) return;
+
+    const plateMap = (result && result.plates_enhanced ? result.plates_enhanced : []).map((item, idx) => ({
+      idx,
+      plate: item.plate_text || "Plate Not Clear",
+      confidence: Number(item.ocr_confidence || item.vehicle?.confidence || 0),
+      cls: item.vehicle?.cls || "vehicle",
+    }));
+
+    rows.innerHTML = (result && result.vehicles ? result.vehicles : []).map((vehicle, idx) => {
+      const match = plateMap[idx] || plateMap[0] || { plate: "Plate Not Clear", confidence: 0, cls: vehicle.cls || "vehicle" };
+      const plateText = match.plate || "Plate Not Clear";
+      const confidencePct = Math.max(0, Math.min(100, Number(match.confidence || vehicle.confidence || 0) * 100));
+      return `
+        <tr>
+          <td>${escapeHtml(vehicle.cls || match.cls || "vehicle")}</td>
+          <td>live-${idx + 1}</td>
+          <td>${escapeHtml(plateText)}</td>
+          <td>${confidencePct.toFixed(0)}%</td>
+          <td>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+        </tr>
+      `;
+    }).join("") || "<tr><td colspan='5'>No vehicles detected from this camera yet.</td></tr>";
+  }
+
   async function runLiveAnprScan(overrideCamId) {
     const status = $("anpr-status");
     const results = $("anpr-results");
@@ -55,6 +86,7 @@
         return;
       }
       if (status) status.textContent = `Scanned [${j.camera_name}]! Found ${j.vehicles.length} vehicles, read ${j.plates_enhanced.length} license plates. Photo saved at ${j.timestamp}`;
+      renderVehicleRowsFromScan(j);
       if (results) {
         results.innerHTML = (j.plates_enhanced || []).map((p) => `
           <div style="background:#0f172a;border:1px solid var(--accent);border-radius:12px;padding:14px;min-width:280px;max-width:330px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,0.5)">
@@ -68,7 +100,7 @@
               ⏱ Photo Clicked: <b style="color:#38bdf8">${p.captured_at}</b>
             </div>
             <div style="font-size:12px;color:#94a3b8;margin-bottom:8px">
-              Vehicle: <b>${p.vehicle.cls.toUpperCase()}</b> · Conf: <b>${(p.vehicle.confidence * 100).toFixed(0)}%</b>
+              Vehicle: <b>${(p.vehicle && p.vehicle.cls ? p.vehicle.cls.toUpperCase() : 'VEHICLE')}</b> · Conf: <b>${((p.ocr_confidence || (p.vehicle ? p.vehicle.confidence : 0)) * 100).toFixed(0)}%</b>
             </div>
             ${p.deblurred_crop_b64 ? `
               <div style="margin:8px 0;text-align:center;background:#000;padding:6px;border-radius:6px">

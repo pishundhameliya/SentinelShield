@@ -92,6 +92,18 @@ def test_vision_and_deblur():
     assert enhanced["laplacian_score"] >= 0.0
 
 
+def test_live_anpr_source_fallback_candidates():
+    """Verify the live ANPR fallback includes the real Sentinel stream variants."""
+    from modules.vision.router import _collect_camera_source_candidates
+
+    cam = {"id": "sentinel-cam-26", "live_url": "https://live.sentinelgujarat.in/camera/26", "source": ""}
+    candidates = _collect_camera_source_candidates("sentinel-cam-26", cam)
+
+    assert "https://live.sentinelgujarat.in/camera/26" in candidates
+    assert "https://live.sentinelgujarat.in/stream/26" in candidates
+    assert any("stream" in s.lower() for s in candidates)
+
+
 def test_centroid_tracking():
     """Verify centroid vehicle tracker multi-frame persistence."""
     state = {"tracks": {}, "next_id": 1, "count": 0}

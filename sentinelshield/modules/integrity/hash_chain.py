@@ -1,4 +1,4 @@
-"""SHA-256 video segment hashing and blockchain-lite tamper-evident verification."""
+"""Cryptographic rolling hash chain generation for tamper-proof video frame validation."""
 from __future__ import annotations
 
 import hashlib
@@ -8,7 +8,7 @@ from typing import Any
 
 
 def sha256_bytes(data: bytes) -> str:
-    """Return lowercase hex SHA-256 hash of bytes data."""
+    """Compute SHA-256 hex digest of raw bytes."""
     return hashlib.sha256(data).hexdigest()
 
 
@@ -25,6 +25,26 @@ class HashChainManager:
         """Append JPEG frame buffer to current segment (capped per frame for efficiency)."""
         if frame_buffer:
             self.segment_bytes.extend(frame_buffer[:8000])
+
+    def append_segment(self, data: bytes, start_time: float = 0.0, end_time: float | None = None) -> dict[str, Any]:
+        """Directly append a data segment and seal it into the chain (supports 2 or 3 args)."""
+        actual_end = end_time if end_time is not None else start_time
+        if data:
+            self.segment_bytes.extend(data)
+        self.segment_start_time = start_time
+        seg = self.close_segment(actual_end)
+        if seg is None:
+            digest = sha256_bytes(bytes(data) + self.current_prev.encode())
+            seg = {
+                "t_start": round(start_time, 2),
+                "t_end": round(actual_end, 2),
+                "sha256": digest,
+                "prev": self.current_prev,
+                "ok": True,
+            }
+            self.chain.append(seg)
+            self.current_prev = digest
+        return seg
 
     def close_segment(self, end_time: float) -> dict[str, Any] | None:
         """Close current segment, compute SHA-256 with previous hash, and roll chain forward."""
@@ -44,34 +64,18 @@ class HashChainManager:
         self.segment_start_time = end_time
         return seg
 
-    def append_segment(self, data: bytes, start_time: float, end_time: float) -> dict[str, Any]:
-        """Directly append a pre-aggregated data segment and seal it into the chain."""
-        self.segment_start_time = start_time
-        self.segment_bytes = bytearray(data)
-        seg = self.close_segment(end_time)
-        if seg is None:
-            digest = sha256_bytes(data + self.current_prev.encode())
-            seg = {
-                "t_start": round(start_time, 2),
-                "t_end": round(end_time, 2),
-                "sha256": digest,
-                "prev": self.current_prev,
-                "ok": True,
-            }
-            self.chain.append(seg)
-            self.current_prev = digest
-        return seg
-
     def verify_chain(self) -> bool:
         """Cryptographically verify the entire rolling hash chain integrity."""
-        prev = "GENESIS"
+        if not self.chain:
+            return True
+        last_hash = "GENESIS"
         for seg in self.chain:
-            if seg.get("prev") != prev:
+            if seg.get("prev") != last_hash:
                 return False
             if not seg.get("ok", True):
                 return False
-            prev = seg.get("sha256", "")
-        return True
+            last_hash = seg.get("sha256", "")
+        return last_hash == self.current_prev
 
     def get_chain(self) -> list[dict[str, Any]]:
         """Return full computed hash chain."""
