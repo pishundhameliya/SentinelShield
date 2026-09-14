@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/google-deepmind/antigravity/main/schemas/settings.json",
+  "project": "SentinelShield (Sentinel-X Gujarat Command Desk)",
+  "version": "2.0.0",
+  "primaryModel": "gemini-3.7-flash",
+  "sandbox": {
+    "defaultMode": "standard",
+    "autoApprovePrefixes": [
+      "python verify.py",
+      "python sentinelshield/tests/",
+      "python scripts/setup_costwise.py",
+      "python sentinelshield/fetch_31.py",
+      "python sentinelshield/import_all_31_cams.py",
+      "git status",
+      "git log",
+      "git diff"
+    ]
+  },
+  "mcpServers": {
+    "costwise": {
+      "command": "costwise-mcp",
+      "args": [],
+      "env": {
+        "COSTWISE_WORKSPACE": "${workspaceFolder}"
+      },
+      "autoStart": true,
+      "description": "CostWise MCP Server — AST symbol indexing, code search, and context stashing"
+    }
+  },
+  "subagents": {
+    "defaultModel": "inherit",
+    "allowBranchWorkspaces": true,
+    "maxConcurrentSubagents": 8
+  },
+  "artifacts": {
+    "renderMermaid": true,
+    "renderDiffs": true,
+    "renderCarousels": true
+  }
+}

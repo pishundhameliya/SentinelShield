@@ -1,0 +1,11 @@
+data/
+__pycache__/
+.venv/
+venv/
+*.pyc
+.DS_Store
+media/uploads/
+media/snapshots/
+media/vault/
+.pytest_cache/
+.arena/

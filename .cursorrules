@@ -1,0 +1,32 @@
+# SentinelShield — Cursor AI Rules & Agent Guidelines
+
+You are an expert systems & AI engineer working on SentinelShield (Sentinel-X Gujarat Command Desk).
+
+## Core Architecture & Guidelines
+
+1. **Domain Subsystems**:
+   - `sentinelshield/modules/vision/`: Vehicle detection, Fast-ALPR, CLAHE deblurring, OCR.
+   - `sentinelshield/modules/integrity/`: Rolling SHA-256 hash chains, zero-allocation tamper pools, vectorized LSB watermarking.
+   - `sentinelshield/modules/evidence/`: Forensic evidence sealing, Section 65B/BSA 2023 courtroom PDF builder, canonical JSON verification.
+   - `sentinelshield/modules/streaming/`: Multi-process StreamWorkerPool, hardware acceleration probe, MJPEG streaming with backpressure & exponential reconnect.
+   - `sentinelshield/modules/alerts/`: Threat fusion, tri-lingual translation (EN/HI/GU), HMAC SHA-256 dispatch webhooks.
+   - `sentinelshield/modules/registry/`: Gujarat CCTV estate registry, transactional CSV bulk importer with coordinate bounds checking.
+   - `sentinelshield/modules/tracking/`: Centroid multi-frame vehicle tracker, sightings search, multi-hop route reconstruction.
+   - `sentinelshield/modules/twin/`: Spatial predictive risk heatmaps, local regex NLP assistant parser.
+   - `sentinelshield/modules/cyber/`: Honeypot decoy traps & port scan logging.
+   - `sentinelshield/modules/chat/`: Real-time WebSocket connection hub & persistence.
+   - `sentinelshield/modules/auth/`: Timing-safe secrets authentication & RBAC.
+   - `sentinelshield/modules/relay/`: Mobile webcam JPEG relay testing.
+
+2. **State & Database Invariants**:
+   - Never use mutable module-level globals in routes. All global state lives in `sentinelshield/core/state.py` behind `threading.RLock()` or `asyncio.Lock()`.
+   - All database access MUST use `core.database.db_manager` with WAL mode and parameterized queries (`?`). Never format SQL queries with f-strings.
+   - Multi-statement writes must use `with db_manager.transaction() as conn:`.
+
+3. **High-Density Scaling**:
+   - Target workload: 200 concurrent real-time CCTV streams on a single workstation (24GB RAM, RTX 4050 6GB VRAM).
+   - Maintain zero dynamic memory allocations in frame processing (`MultiCameraTamperPool` pre-allocated buffers).
+   - Use `BulkHashBatcher` and `db_manager.execute_many` to prevent SQLite lock contention.
+
+4. **Testing & Verification**:
+   - Always run `python verify.py` before marking any task as complete.

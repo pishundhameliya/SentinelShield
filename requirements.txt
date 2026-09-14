@@ -1,0 +1,2 @@
+# SentinelShield — Core Runtime & Testing Dependencies
+-r sentinelshield/requirements.txt
