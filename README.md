@@ -133,7 +133,6 @@ SentinelShield/
 │   │   ├── evidence/               # Evidence vault sealing & ranking
 │   │   ├── integrity/              # SHA-256 rolling chain, tamper detection
 │   │   ├── registry/               # Gujarat cities, areas, camera feeds
-│   │   ├── relay/                  # Temporary mobile webcam relay test
 │   │   ├── streaming/              # MJPEG generator, video job worker, AI daemon
 │   │   ├── tracking/               # Centroid tracker, route reconstruction
 │   │   ├── twin/                   # Digital twin risk heatmaps, assistant NLP

@@ -9,7 +9,7 @@ Thank you for your interest in contributing to **SentinelShield (Sentinel-X Guja
 Before writing code, review [ARCHITECTURE.md](ARCHITECTURE.md), [AGENTS.md](AGENTS.md), and [AGENT_RULES.md](AGENT_RULES.md). All contributions must adhere to the following non-negotiable architectural rules:
 
 1. **Domain Isolation**:
-   - Code is organized strictly by domain inside `sentinelshield/modules/` (`vision/`, `streaming/`, `tracking/`, `alerts/`, `integrity/`, `evidence/`, `cyber/`, `twin/`, `registry/`, `chat/`, `relay/`, `auth/`).
+   - Code is organized strictly by domain inside `sentinelshield/modules/` (`vision/`, `streaming/`, `tracking/`, `alerts/`, `integrity/`, `evidence/`, `cyber/`, `twin/`, `registry/`, `chat/`, `auth/`).
    - Do not place domain logic inside `app.py`. `app.py` is reserved exclusively for mounting routers, configuring middleware, and managing lifespan hooks.
 
 2. **Concurrency & Database Invariants**:

@@ -46,7 +46,6 @@ Code is strictly segregated into domain subsystems inside `sentinelshield/module
 - `modules/twin/`: Spatial predictive risk heatmaps (`heat.py`), local regex-based natural language assistant intent parser (`assistant.py`), virtual drone dispatch simulation.
 - `modules/cyber/`: Fake ONVIF/admin honeypot decoy traps (`honeypot.py`), port-scan reconnaissance logging.
 - `modules/chat/`: WebSocket team connection hub (`ws_hub` in `core/state.py`) with dead-socket cleanup and room message persistence.
-- `modules/relay/`: Temporary mobile webcam JPEG relay testbed (`relay_state` in `core/state.py`).
 - `modules/auth/`: Timing-attack resistant session authentication (`SessionManager`) and RBAC verification.
 
 - **Never put cross-domain business logic directly into `app.py`**. `app.py` is reserved solely as a top-level composer that mounts routers, configures middlewares, and manages lifespan daemon hooks.

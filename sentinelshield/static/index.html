@@ -1,73 +1,151 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SentinelShield Desk</title>
+  <title>SentinelShield | Sentinel-X Gujarat Command Centre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/css/styles.css?v=v2_modular" />
+  <link rel="stylesheet" href="/static/css/styles.css?v=v8_gov" />
 </head>
 <body>
-  <noscript><p style="padding:16px;background:#fbbf24;color:#111">Turn JavaScript on, then refresh.</p></noscript>
+  <!-- Shared crest mark -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="crest" viewBox="0 0 46 52">
+      <path d="M23 1.5 44 8.5V24c0 13.6-9.4 22.6-21 26.5C11.4 46.6 2 37.6 2 24V8.5Z" fill="#0b2a5b" stroke="#c99a2e" stroke-width="2"/>
+      <path d="M23 6 40 11.6V24c0 11-7.4 18.5-17 21.8C13.4 42.5 6 35 6 24V11.6Z" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="1"/>
+      <path d="M8 15.5h30" stroke="#ff9933" stroke-width="2.4"/>
+      <path d="M8.6 34.5h28.8" stroke="#138808" stroke-width="2.4"/>
+      <circle cx="23" cy="25" r="7.2" fill="none" stroke="#ffffff" stroke-width="2.2"/>
+      <circle cx="23" cy="25" r="3.2" fill="#ff9933"/>
+      <circle cx="24.4" cy="23.6" r="1" fill="#ffffff"/>
+    </symbol>
+  </svg>
+
+  <noscript><p class="banner banner-warn" style="margin:16px">Turn JavaScript on, then refresh.</p></noscript>
+
+  <!-- ===================== LOGIN ===================== -->
   <div id="login">
-    <div class="card">
-      <h1>SentinelShield Desk</h1>
-      <p><b>Sentinel-X Gujarat</b> - CCTV + AI + GIS + cyber + evidence in one desk. Not analytics-only.</p>
-      <label>Email</label>
-      <input id="user" value="operator" placeholder="you@example.com" />
-      <label>Access Password</label>
-      <input id="pass" type="password" value="operator" placeholder="XXXX-XXXX-XXXX" />
-      <div class="row"><button class="btn btn-p" type="button" onclick="doLogin()">Enter desk</button></div>
-      <p class="hint" style="margin-top:14px">Login with your registered email and password to access the Camera Grid</p>
+    <div class="gov-strip" aria-hidden="true"></div>
+    <div class="login-wrap">
+      <div class="login-panel">
+        <div class="login-aside">
+          <svg class="crest" aria-hidden="true"><use href="#crest"/></svg>
+          <p class="eyebrow">Sentinel-X Gujarat</p>
+          <h1>SentinelShield Command Centre</h1>
+          <p>Integrated CCTV surveillance, AI analytics, GIS digital twin, cyber defence and forensic evidence management on one secure desk.</p>
+          <ul>
+            <li>State-wide camera registry by city and area</li>
+            <li>ANPR vehicle tracking and watchlist alerts</li>
+            <li>Tamper and cyber-attack detection</li>
+            <li>Section 65B / BSA 2023 sealed evidence</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Officer sign-in</h2>
+          <p>Use your registered credentials to access the command desk.</p>
+          <label for="user">Email / User ID</label>
+          <input id="user" value="operator" placeholder="you@example.com" autocomplete="username" />
+          <label for="pass">Access password</label>
+          <input id="pass" type="password" value="operator" placeholder="XXXX-XXXX-XXXX" autocomplete="current-password" />
+          <div class="row" style="margin-top:18px"><button class="btn btn-p" type="button" onclick="doLogin()">Sign in to desk</button></div>
+          <p class="hint" style="margin-top:16px">Unauthorised access is an offence under the Information Technology Act, 2000. All sessions are logged and audited.</p>
+        </div>
+      </div>
     </div>
+    <p class="login-foot">SentinelShield · Sentinel-X Gujarat · Restricted system for authorised law-enforcement personnel</p>
   </div>
 
+  <!-- ===================== APP ===================== -->
   <div id="app" class="hidden">
-    <header>
-      <h1>SentinelShield</h1>
-      <nav>
-        <button class="on" data-tab="home" onclick="tab('home',this)">Cities</button>
-        <button data-tab="cams" onclick="tab('cams',this)">Cameras</button>
-        <button data-tab="threats" onclick="tab('threats',this)">Threats</button>
-        <button data-tab="alerts" onclick="tab('alerts',this)">Alerts</button>
-        <button data-tab="find" onclick="tab('find',this)">Find vehicle</button>
-        <button data-tab="watch" onclick="tab('watch',this)">Watchlist</button>
-        <button data-tab="map" onclick="tab('map',this)">Map</button>
-        <button data-tab="live" onclick="tab('live',this)">Live</button>
-        <button data-tab="tools" onclick="tab('tools',this)">Tools</button>
-        <button data-tab="help" onclick="tab('help',this)">Help</button>
-        <!-- BEGIN TEMP WEBCAM TEST — delete this button to remove from menu -->
-        <button data-tab="webcam" onclick="tab('webcam',this)" id="temp-webcam-btn" style="background:#b45309;color:#fff">TEST Webcam</button>
-        <!-- END TEMP WEBCAM TEST -->
-      </nav>
-      <input id="qplate" placeholder="GJ05SS2026" style="width:150px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#0b1220;color:#fff" />
-      <button class="btn btn-g" type="button" id="btn-find">Find</button>
-      <div class="who" id="who"></div>
-      <button class="btn btn-p chat-btn" type="button" onclick="toggleChat()">Chat <span class="dot" id="chatdot">0</span></button>
-      <button class="btn btn-d" type="button" onclick="logout()">Leave</button>
+    <div class="gov-strip" aria-hidden="true"></div>
+    <div class="utility-bar">
+      <span class="restricted"><b>RESTRICTED</b> For authorised law-enforcement personnel only · All activity is logged</span>
+      <span class="util-links">
+        <a href="#main">Skip to main content</a>
+        <span>Evidence: Section 65B / BSA 2023</span>
+      </span>
+    </div>
+
+    <header class="masthead">
+      <div class="brand">
+        <svg class="crest" aria-hidden="true"><use href="#crest"/></svg>
+        <div>
+          <h1>SentinelShield</h1>
+          <p>Sentinel-X Gujarat · Integrated CCTV Command &amp; Control Centre</p>
+        </div>
+      </div>
+      <div class="mast-tools">
+        <div class="plate-search" role="search">
+          <input id="qplate" placeholder="GJ05SS2026" aria-label="Search vehicle number" />
+          <button class="btn btn-p" type="button" id="btn-find">Find vehicle</button>
+        </div>
+        <div class="who" id="who"></div>
+        <button class="btn btn-s chat-btn" type="button" onclick="toggleChat()">Assistant <span class="dot" id="chatdot">1</span></button>
+        <button class="btn btn-d" type="button" onclick="logout()">Sign out</button>
+      </div>
     </header>
 
-    <div class="page">
+    <nav aria-label="Main">
+      <button class="on" data-tab="home" onclick="tab('home',this)">Cities</button>
+      <button data-tab="cams" onclick="tab('cams',this)">Cameras</button>
+      <button data-tab="threats" onclick="tab('threats',this)">Threats</button>
+      <button data-tab="alerts" onclick="tab('alerts',this)">Alerts</button>
+      <button data-tab="find" onclick="tab('find',this)">Find vehicle</button>
+      <button data-tab="watch" onclick="tab('watch',this)">Watchlist</button>
+      <button data-tab="map" onclick="tab('map',this)">Map</button>
+      <button data-tab="live" onclick="tab('live',this)">Live</button>
+      <button data-tab="tools" onclick="tab('tools',this)">Tools</button>
+      <button data-tab="help" onclick="tab('help',this)">Help</button>
+    </nav>
+
+    <div class="page" id="main" tabindex="-1">
+      <!-- ===== Cities ===== -->
       <section id="p-home">
+        <div class="page-head">
+          <div>
+            <span class="kicker">State camera registry</span>
+            <h2>Cities &amp; areas</h2>
+            <p>Select a city, then an area, to open its government cameras.</p>
+          </div>
+        </div>
         <div class="banner">Gujarat registry: <b id="estate-n">2,00,000+</b> cameras. Open <b>city → area</b>. Extra tools are on Map / Tools — not a phase wizard.</div>
-        <div class="row" id="stats" style="margin:12px 0"></div>
+        <div class="row" id="stats" style="margin:14px 0"></div>
         <p class="crumb" id="crumb"></p>
         <div class="grid cams" id="home-grid"></div>
       </section>
 
+      <!-- ===== Cameras ===== -->
       <section id="p-cams" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">Selected area</span>
+            <h2>Cameras</h2>
+            <p>Cameras registered in the currently selected area.</p>
+          </div>
+        </div>
         <div class="box">
           <h3>Add a camera in the selected area</h3>
           <div class="row">
-            <input id="nc-name" placeholder="Camera name" style="max-width:220px" />
+            <input id="nc-name" placeholder="Camera name" style="max-width:260px" />
             <button class="btn btn-p" type="button" onclick="addCam()">Add camera</button>
             <button class="btn btn-g" type="button" onclick="analyzeAll()">Check videos in this area</button>
           </div>
         </div>
-        <div class="grid cams" id="cam-list" style="margin-top:12px"></div>
+        <div class="grid cams" id="cam-list" style="margin-top:14px"></div>
       </section>
 
+      <!-- ===== Threats ===== -->
       <section id="p-threats" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">AI threat detection</span>
+            <h2>Threats</h2>
+            <p>Panic, abandoned object, weapon / crowd rush and watchlist hits.</p>
+          </div>
+        </div>
         <div class="box">
           <h3>Threats — panic, abandoned object, weapon / rush</h3>
           <p class="meta">Continuous AI plus one-click demos judges can see.</p>
@@ -95,7 +173,7 @@
             <select id="ev-cam" style="max-width:260px"></select>
             <button class="btn btn-p" type="button" id="btn-evd">Seal evidence pack</button>
           </div>
-          <table style="margin-top:10px"><thead><tr><th>When</th><th>Camera</th><th>SHA-256</th></tr></thead><tbody id="evd-rows"></tbody></table>
+          <table><thead><tr><th>When</th><th>Camera</th><th>SHA-256</th></tr></thead><tbody id="evd-rows"></tbody></table>
         </div>
       </section>
 
@@ -106,32 +184,56 @@
             <input id="evq" placeholder="keyword: stolen, freeze, GJ05, crowd" style="max-width:280px" />
             <button class="btn btn-g" type="button" id="btn-evq">Search events</button>
           </div>
-          <table style="margin-top:10px"><thead><tr><th>When</th><th>Kind</th><th>Event</th><th>Place</th></tr></thead><tbody id="ev-rows"></tbody></table>
+          <table><thead><tr><th>When</th><th>Kind</th><th>Event</th><th>Place</th></tr></thead><tbody id="ev-rows"></tbody></table>
         </div>
       </section>
 
+      <!-- ===== Alerts ===== -->
       <section id="p-alerts" class="hidden">
-        <div class="box"><table><thead><tr><th>When</th><th>What</th><th>Camera</th><th>Trust</th><th>Status</th></tr></thead><tbody id="alert-rows"></tbody></table></div>
+        <div class="page-head">
+          <div>
+            <span class="kicker">Incident register</span>
+            <h2>Alerts</h2>
+            <p>All alerts raised by AI and operators. Mark each as Seen or Done.</p>
+          </div>
+        </div>
+        <div class="box"><table style="margin-top:0"><thead><tr><th>When</th><th>What</th><th>Camera</th><th>Trust</th><th>Status</th></tr></thead><tbody id="alert-rows"></tbody></table></div>
       </section>
 
+      <!-- ===== Watchlist ===== -->
       <section id="p-watch" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">ANPR</span>
+            <h2>Vehicle watchlist</h2>
+            <p>Stolen, blacklisted and suspect vehicle numbers matched against every plate read.</p>
+          </div>
+        </div>
         <div class="box">
           <h3>Vehicles we look for</h3>
           <div class="row">
             <input id="wl-plate" placeholder="GJ05SS2026" style="max-width:180px" />
-            <select id="wl-kind" style="max-width:140px">
+            <select id="wl-kind" style="max-width:150px">
               <option value="stolen">Stolen</option>
               <option value="blacklisted">Blacklisted</option>
               <option value="suspect">Suspect</option>
             </select>
-            <input id="wl-note" placeholder="Short note" style="max-width:240px" />
+            <input id="wl-note" placeholder="Short note" style="max-width:260px" />
             <button class="btn btn-p" type="button" onclick="addWl()">Save plate</button>
           </div>
-          <table style="margin-top:10px"><thead><tr><th>Plate</th><th>Type</th><th>Note</th><th></th></tr></thead><tbody id="wl-rows"></tbody></table>
+          <table><thead><tr><th>Plate</th><th>Type</th><th>Note</th><th></th></tr></thead><tbody id="wl-rows"></tbody></table>
         </div>
       </section>
 
+      <!-- ===== Find vehicle ===== -->
       <section id="p-find" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">ANPR tracking</span>
+            <h2>Find vehicle</h2>
+            <p>Last camera, full path, direction and estimated speed.</p>
+          </div>
+        </div>
         <div class="box">
           <h3>Track vehicle + route reconstruction</h3>
           <p class="meta">Last camera, full path, direction and demo speed. Try GJ05SS2026.</p>
@@ -141,82 +243,134 @@
             <span class="meta" id="ai-status">AI: starting…</span>
             <button class="btn btn-d" type="button" id="btn-ai">Pause / resume AI</button>
           </div>
-          <p id="find-msg" class="banner" style="margin-top:12px">Try: <b>GJ05SS2026</b> (stolen), GJ05AB4321, GJ27HK9009</p>
+          <p id="find-msg" class="banner" style="margin-top:14px">Try: <b>GJ05SS2026</b> (stolen), GJ05AB4321, GJ27HK9009</p>
           <div id="find-last"></div>
-          <table style="margin-top:10px"><thead><tr><th>When</th><th>Camera</th><th>Place</th><th>City</th></tr></thead><tbody id="find-rows"></tbody></table>
+          <table><thead><tr><th>When</th><th>Camera</th><th>Place</th><th>City</th></tr></thead><tbody id="find-rows"></tbody></table>
         </div>
-        <div id="find-map" style="height:320px;margin-top:12px;border-radius:14px;border:1px solid var(--line)"></div>
+        <div id="find-map" style="height:340px;margin-top:14px"></div>
       </section>
 
+      <!-- ===== Map / Digital twin ===== -->
       <section id="p-map" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">GIS digital twin</span>
+            <h2>Map</h2>
+            <p>Predictive risk heat, cyber threat locations, suspect routes and drone dispatch.</p>
+          </div>
+        </div>
         <div class="banner">Same Cities interface + Digital Twin layers. Use any button — heat, cyber attacks, suspect route, drone.</div>
-        <div class="row" style="margin:10px 0">
+        <div class="row" style="margin:12px 0">
           <button class="btn btn-s" type="button" id="btn-heat">Predictive heat</button>
           <button class="btn btn-s" type="button" id="btn-cybermap">Cyber threat map</button>
           <button class="btn btn-s" type="button" id="btn-route">Route GJ05SS2026</button>
           <button class="btn btn-s" type="button" id="btn-drone">Launch drone (sim)</button>
         </div>
-        <div id="twin-map" style="height:400px;border-radius:14px;border:1px solid var(--line)"></div>
+        <div id="twin-map" style="height:460px"></div>
+        <div class="map-legend" style="margin-top:10px">
+          <span class="key"><i style="background:#e11d48"></i>Predicted risk</span>
+          <span class="key"><i style="background:#fb923c"></i>Cyber</span>
+          <span class="key"><i style="background:#38bdf8"></i>Cameras</span>
+        </div>
         <p class="meta" id="twin-note">Red = predicted risk · Orange = cyber · Blue = cameras</p>
         <div id="map" style="display:none"></div>
       </section>
 
+      <!-- ===== Live ===== -->
       <section id="p-live" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">Live monitoring</span>
+            <h2>Live CCTV feeds</h2>
+            <p>Open live feeds and run ANPR scans on the selected camera.</p>
+          </div>
+        </div>
         <div class="banner"><b>Live CCTV Feeds:</b> Select a city → area to view live feeds or connect a custom trial feed URL.</div>
-        <p class="crumb" id="live-crumb"></p>
-        <div class="box" style="margin:12px 0">
+        <p class="crumb" id="live-crumb" style="margin-top:12px"></p>
+        <div class="box" style="margin-top:12px">
           <h3>Add / Connect Live CCTV Feed URL</h3>
           <div class="row">
-            <input id="shop-name" placeholder="Camera Name (e.g. Camera 26)" style="max-width:220px" />
-            <input id="shop-url" placeholder="https://live.sentinelgujarat.in/camera/26" style="flex:1" />
+            <input id="shop-name" placeholder="Camera Name (e.g. Camera 26)" style="max-width:240px" />
+            <input id="shop-url" placeholder="https://live.sentinelgujarat.in/camera/26" style="flex:1;min-width:200px" />
             <button class="btn btn-p" type="button" onclick="addShopCam()">Connect Feed</button>
           </div>
         </div>
-        <div class="grid cams" id="live-grid" style="margin:12px 0"></div>
-        <div class="box livebox" style="margin-top:14px">
-          <h3>Now playing</h3>
-          <p class="meta" id="live-now">No camera open yet. Pick a camera and click Open live.</p>
-          <div class="row" style="margin-bottom:10px">
-            <button class="btn btn-r" type="button" onclick="stopLive()">Stop live</button>
-            <button class="btn btn-warn" style="background:#f59e0b;color:#fff" type="button" onclick="pauseLiveStream()">Pause</button>
-            <button class="btn btn-g" type="button" onclick="playLiveStream()">Play</button>
-            <a id="live-link" href="#" target="_blank" class="btn btn-s" style="display:none;text-decoration:none">Open stream in new tab 🔗</a>
+        <div class="live-layout">
+        <div class="box livebox viewer" id="live-viewer">
+          <div class="viewer-head">
+            <span class="rec-dot" aria-hidden="true"></span>
+            <h3>Now playing</h3>
+            <p class="meta" id="live-now">No camera open yet. Pick a camera and click Open live.</p>
+            <div class="row viewer-controls">
+              <button class="btn btn-r" type="button" onclick="stopLive()">Stop live</button>
+              <button class="btn btn-warn" type="button" onclick="pauseLiveStream()">Pause</button>
+              <button class="btn btn-g" type="button" onclick="playLiveStream()">Play</button>
+              <a id="live-link" href="#" target="_blank" class="btn btn-s" style="display:none;text-decoration:none">Open in new tab ↗</a>
+            </div>
           </div>
-          <img id="live-img" alt="Live picture" style="margin-top:10px;display:none" />
-          <video id="live-video" controls autoplay muted playsinline style="margin-top:10px;width:100%;max-width:800px;border-radius:12px;border:1px solid var(--line);display:none;background:#000"></video>
-          <iframe id="live-frame" style="margin-top:10px;width:100%;height:520px;border-radius:12px;border:1px solid var(--line);display:none" allow="autoplay; fullscreen"></iframe>
+          <div class="screen" id="live-screen">
+            <div class="screen-empty">
+              <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M3 7h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm13 4 6-3v8l-6-3"/></svg>
+              <b>No feed selected</b>
+              <span>Click any camera in the list to open its live feed</span>
+            </div>
+            <img id="live-img" alt="Live picture" style="display:none" />
+            <video id="live-video" controls autoplay muted playsinline style="display:none"></video>
+            <iframe id="live-frame" style="display:none" allow="autoplay; fullscreen"></iframe>
+            <div class="osd">
+              <span class="osd-live">● LIVE</span>
+              <span class="osd-name" id="live-osd-name"></span>
+              <span class="osd-clock" id="live-osd-clock"></span>
+            </div>
+          </div>
         </div>
-        
+        <aside class="cam-rail" aria-label="Available live cameras">
+          <div class="rail-head">
+            <h3>Live cameras</h3>
+            <span class="badge b-info" id="live-cam-count">0</span>
+          </div>
+          <input id="live-filter" class="rail-filter" placeholder="Search camera name or number" oninput="SSLivePlayer.applyLiveFilter()" autocomplete="off" />
+          <div class="rail-list" id="live-grid"></div>
+        </aside>
+        </div>
+
         <div class="box" style="margin-top:14px">
-          <h3>🔍 ANPR & Deblurred CCTV Plate Scanner (Vehicle-Detection + Fast-ALPR)</h3>
-          <p class="meta">Extracts vehicles, applies CLAHE contrast boost & unsharp mask deblurring to read low-res / blurry CCTV number plates.</p>
-          <div class="row" style="margin-bottom:8px;align-items:center">
-            <label style="font-weight:bold;font-size:13px">Selected CCTV Feed:</label>
-            <select id="anpr-cam-select" style="max-width:340px;padding:8px;border-radius:8px;background:#0f172a;color:#fff;border:1px solid var(--accent);font-weight:bold" onchange="onAnprCamChanged(this.value)">
+          <h3>ANPR &amp; Deblurred CCTV Plate Scanner (Vehicle-Detection + Fast-ALPR)</h3>
+          <p class="meta">Extracts vehicles, applies CLAHE contrast boost &amp; unsharp mask deblurring to read low-res / blurry CCTV number plates.</p>
+          <div class="row" style="margin-bottom:8px">
+            <label for="anpr-cam-select" style="margin:0">Selected CCTV feed:</label>
+            <select id="anpr-cam-select" class="anpr-select" onchange="onAnprCamChanged(this.value)">
             </select>
             <button class="btn btn-p" type="button" id="btn-anpr-scan" onclick="runLiveAnprScan()">Run AI Scan on Selected Feed</button>
           </div>
-          <div class="crumb" id="anpr-selected-label" style="font-size:13px;margin:6px 0">Active Camera Feed: <b style="color:var(--accent)">Camera 26 — 34 Dhanori (LIVE)</b></div>
+          <div class="crumb" id="anpr-selected-label" style="margin:8px 0">Active Camera Feed: <b style="color:var(--accent)">Camera 26 — 34 Dhanori (LIVE)</b></div>
           <span id="anpr-status" class="hint" style="display:block;margin-top:4px">Pick any of the 31 CCTV feeds above and click Run AI Scan.</span>
-          <div class="stat" style="margin-top:10px">Vehicles passed: <b id="live-vehicle-count">0</b></div>
-          <table style="margin-top:10px"><thead><tr><th>Vehicle type</th><th>Tracking ID</th><th>Number plate</th><th>OCR confidence</th><th>Detection time</th></tr></thead><tbody id="live-vehicle-rows"></tbody></table>
-          <div id="anpr-results" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-top:10px"></div>
+          <div class="stat" style="margin-top:12px">Vehicles passed: <b id="live-vehicle-count">0</b></div>
+          <table><thead><tr><th>Vehicle type</th><th>Tracking ID</th><th>Number plate</th><th>OCR confidence</th><th>Detection time</th></tr></thead><tbody id="live-vehicle-rows"></tbody></table>
+          <div id="anpr-results" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;margin-top:12px"></div>
         </div>
       </section>
 
-      
+      <!-- ===== Tools ===== -->
       <section id="p-tools" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">Operations</span>
+            <h2>Tools</h2>
+            <p>AI findings, assistant, honeypot and evidence sealing.</p>
+          </div>
+        </div>
         <div class="banner">Simple desk: AI already watched the demo cameras. Below is <b>what it found</b>. Big buttons do one job each.</div>
-        <div class="row" id="tools-stats" style="margin:12px 0"></div>
+        <div class="row" id="tools-stats" style="margin:14px 0"></div>
         <div class="box">
           <h3>What AI found (vehicles / freeze / crowd)</h3>
           <p class="meta">You do not need to type a camera link. These come from continuous AI.</p>
           <table><thead><tr><th>When</th><th>What</th><th>Where</th></tr></thead><tbody id="tools-ev-rows"></tbody></table>
         </div>
-        <div class="box" style="margin-top:12px">
+        <div class="box" style="margin-top:14px">
           <h3>Ask in simple words</h3>
           <div class="row">
-            <input id="askq" placeholder="Example: show stolen cars" />
+            <input id="askq" placeholder="Example: show stolen cars" style="flex:1;min-width:200px" />
             <button class="btn btn-p" type="button" id="btn-ask">Ask</button>
             <button class="btn btn-g" type="button" id="btn-voice">Speak</button>
           </div>
@@ -226,68 +380,35 @@
             <button class="btn btn-s" type="button" data-ask="find GJ05SS2026">Find GJ05SS2026</button>
             <button class="btn btn-s" type="button" data-ask="show cyber attacks">Show cyber attacks</button>
           </div>
-          <div id="ask-out" class="hint" style="margin-top:10px">Press a green/blue button or type a question.</div>
+          <div id="ask-out" class="hint" style="margin-top:12px">Press a green/blue button or type a question.</div>
         </div>
-        <div class="box" style="margin-top:12px">
+        <div class="box" style="margin-top:14px">
           <h3>Honeypot — fake camera trap</h3>
           <p class="meta">If a stranger tries to open a fake CCTV, we catch it here.</p>
           <button class="btn btn-r" type="button" id="btn-hp">Test: pretend I am a hacker</button>
-          <table style="margin-top:10px"><thead><tr><th>When</th><th>Type</th><th>What happened</th></tr></thead><tbody id="tools-cyber-rows"></tbody></table>
+          <table><thead><tr><th>When</th><th>Type</th><th>What happened</th></tr></thead><tbody id="tools-cyber-rows"></tbody></table>
         </div>
-        <div class="box" style="margin-top:12px">
+        <div class="box" style="margin-top:14px">
           <h3>Save important video (evidence)</h3>
           <p class="meta">Makes a locked file with a fingerprint (SHA-256). Ranked list = most serious first.</p>
           <div class="row">
             <select id="ev-cam" style="max-width:280px"></select>
             <button class="btn btn-p" type="button" id="btn-evd">Save evidence now</button>
           </div>
-          <table style="margin-top:10px"><thead><tr><th>When</th><th>How serious</th><th>Fingerprint</th></tr></thead><tbody id="tools-evd-rows"></tbody></table>
+          <table><thead><tr><th>When</th><th>How serious</th><th>Fingerprint</th></tr></thead><tbody id="tools-evd-rows"></tbody></table>
         </div>
       </section>
 
-      <!-- BEGIN TEMP WEBCAM TEST — delete this whole section -->
-      <section id="p-webcam" class="hidden">
-        <div class="banner" style="background:#7c2d12;color:#ffedd5">TEMPORARY — test with <b>IP Webcam on your phone</b>. Not a police camera. Delete later (search TEMP WEBCAM).</div>
-        <div class="box" style="margin-top:12px">
-          <h3>Different Wi‑Fi? Use this (recommended)</h3>
-          <p class="meta">Phone and laptop do <b>not</b> need the same Wi‑Fi. On the <b>phone Chrome</b> open this exact link:</p>
-          <p><code id="wc-relay-link" style="display:block;word-break:break-all;font-size:14px;padding:10px;background:#0b1220;border-radius:8px">Open TEST Webcam on this laptop — the phone link is filled automatically</code></p>
-          <div class="row">
-            <button class="btn btn-s" type="button" id="wc-copy">Copy phone link</button>
-            <button class="btn btn-g" type="button" id="wc-relay">Show phone on this laptop</button>
-            <button class="btn btn-r" type="button" id="wc-stop">Stop</button>
-          </div>
-          <p class="meta">Phone: Start sending → Allow camera. Laptop: Show phone on this laptop. Keep both pages open.</p>
-          <hr style="border:0;border-top:1px solid var(--line);margin:16px 0" />
-          <h3>1. Same Wi‑Fi only — IP Webcam app link <span id="wc-status" class="badge b-info">OFF</span></h3>
-          <p class="meta">Only if phone and laptop share Wi‑Fi. IP Webcam → Start server → paste <code>http://192.168.x.x:8080</code></p>
-          <label>IP Webcam link</label>
-          <input id="wc-url" placeholder="http://192.168.1.25:8080" />
-          <div class="row">
-            <button class="btn btn-p" type="button" id="wc-add">Add this link</button>
-          </div>
-          <p class="meta" id="wc-saved">No link saved yet.</p>
-          <h3 style="margin-top:16px">2. Open the phone camera</h3>
-          <div class="row">
-            <button class="btn btn-g" type="button" id="wc-start">Show live video</button>
-            <button class="btn btn-p" type="button" id="wc-shot">Show snapshots</button>
-            <button class="btn btn-r" type="button" id="wc-stop">Stop</button>
-          </div>
-          <p class="meta" style="margin-top:8px">If the picture is blank: lock icon → allow insecure content. Then try Show snapshots.</p>
-          <img id="wc-ipimg" alt="Phone camera" style="margin-top:12px;max-width:min(720px,100%);border-radius:12px;background:#000;min-height:180px;display:none" />
-          <video id="wc-video" autoplay playsinline muted class="hidden"></video>
-          <canvas id="wc-canvas" class="hidden"></canvas>
-          <p id="wc-readout" class="banner" style="margin-top:10px">Paste the phone address, then Show phone camera.</p>
-          <pre id="wc-log" class="hint" style="max-height:140px;overflow:auto;white-space:pre-wrap"></pre>
-          <details class="meta" style="margin-top:10px">
-            <summary>Laptop camera instead</summary>
-            <button class="btn btn-s" type="button" id="wc-laptop">Use laptop webcam</button>
-          </details>
-        </div>
-      </section>
-      <!-- END TEMP WEBCAM TEST -->
 
+      <!-- ===== Help ===== -->
       <section id="p-help" class="hidden">
+        <div class="page-head">
+          <div>
+            <span class="kicker">Guidance</span>
+            <h2>Help &amp; system overview</h2>
+            <p>How cameras are onboarded, what the AI does and how the system is protected.</p>
+          </div>
+        </div>
         <div class="box">
           <h3>2 lakh cameras — do we add each link by hand?</h3>
           <p class="meta"><b>No.</b> Manual paste is only for a demo of 1–50 cameras. The main Gujarat track loads cameras in bulk.</p>
@@ -301,9 +422,9 @@
               <tr><td>Typing one RTSP in a box</td><td>Nobody at state scale</td><td>Wrong method</td></tr>
             </tbody>
           </table>
-          <p class="meta" style="margin-top:10px">Operator work is: pick city → area → watch / confirm alert. Not “add camera 1, add camera 2…”.</p>
+          <p class="meta" style="margin-top:12px">Operator work is: pick city → area → watch / confirm alert. Not “add camera 1, add camera 2…”.</p>
         </div>
-        <div class="box" style="margin-top:12px">
+        <div class="box" style="margin-top:14px">
           <h3>How this system connects to all cameras</h3>
           <p class="meta">Think of 3 layers. Your software sits in the middle. Cameras stay on their old NVR.</p>
           <ol class="meta">
@@ -314,40 +435,61 @@
           </ol>
           <p class="meta"><b>Hackathon:</b> organisers give ~50 live feeds or a file list — import that list. <b>State:</b> Home Dept. gives VMS access + camera Excel. You do not visit each pole.</p>
         </div>
-        <div class="box" style="margin-top:12px">
-          <h3>What AI does</h3>
-          <ul class="meta">
-            <li>Read number plates and match watchlists</li>
-            <li>Flag freeze / black / looped video (tamper)</li>
-            <li>Flag crowd-rush or long object (possible weapon)</li>
-            <li>Trust score — ignore alerts on fake video</li>
-          </ul>
-          <p class="meta">A person still presses Seen / Done.</p>
-        </div>
-        <div class="box" style="margin-top:12px">
-          <h3>Protect the system</h3>
-          <ul class="meta">
-            <li>Login + roles. Change default passwords for any real deploy.</li>
-            <li>Camera passwords stay inside department VMS, not in a public form.</li>
-            <li>Hash / tamper checks if someone loops old footage.</li>
-            <li>Production: HTTPS, firewall, 2FA, private CCTV VLAN.</li>
-          </ul>
+        <div class="grid" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+          <div class="box">
+            <h3>What AI does</h3>
+            <ul class="meta">
+              <li>Read number plates and match watchlists</li>
+              <li>Flag freeze / black / looped video (tamper)</li>
+              <li>Flag crowd-rush or long object (possible weapon)</li>
+              <li>Trust score — ignore alerts on fake video</li>
+            </ul>
+            <p class="meta">A person still presses Seen / Done.</p>
+          </div>
+          <div class="box">
+            <h3>Protect the system</h3>
+            <ul class="meta">
+              <li>Login + roles. Change default passwords for any real deploy.</li>
+              <li>Camera passwords stay inside department VMS, not in a public form.</li>
+              <li>Hash / tamper checks if someone loops old footage.</li>
+              <li>Production: HTTPS, firewall, 2FA, private CCTV VLAN.</li>
+            </ul>
+          </div>
         </div>
       </section>
+
+      <footer class="site-foot">
+        <div>
+          <b>SentinelShield · Sentinel-X Gujarat</b>
+          <p>Integrated CCTV surveillance, GIS digital twin, cyber defence and forensic evidence platform.</p>
+        </div>
+        <div>
+          <b>Evidence integrity</b>
+          <p>Evidence packs are SHA-256 sealed and watermarked for Section 65B / Bharatiya Sakshya Adhiniyam, 2023 certification.</p>
+        </div>
+        <div>
+          <b>Restricted access</b>
+          <p>Unauthorised access is an offence under the Information Technology Act, 2000. All actions are logged.</p>
+        </div>
+      </footer>
     </div>
   </div>
 
+  <!-- ===================== DESK ASSISTANT (static chatbot) ===================== -->
   <div id="chatback" class="hidden" onclick="toggleChat()"></div>
-  <aside id="chatdraw" class="hidden">
-    <div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center">
-      <b>Team chat</b>
-      <button class="btn btn-d" style="margin-left:auto" type="button" onclick="toggleChat()">Close</button>
+  <aside id="chatdraw" class="hidden" aria-label="Desk assistant">
+    <div class="drawer-head">
+      <svg class="bot-avatar" aria-hidden="true"><use href="#crest"/></svg>
+      <div><b>Desk Assistant</b><small><span class="online-dot"></span>Automated help · pre-set answers</small></div>
+      <button class="btn btn-d" type="button" onclick="toggleChat()">Close</button>
     </div>
-    <div id="chatlog"></div>
+    <div id="chatlog" aria-live="polite"></div>
+    <div class="chat-suggest" id="chat-suggest" aria-label="Suggested questions"></div>
     <form id="chatform" onsubmit="sendChat(event)">
-      <input id="chatbox" placeholder="Write to everyone" autocomplete="off" />
+      <input id="chatbox" placeholder="Ask a question, e.g. how to track a vehicle" autocomplete="off" />
       <button class="btn btn-p" type="submit">Send</button>
     </form>
+    <p class="chat-note">Answers are built in. Messages are not sent to the server or other officers.</p>
   </aside>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -355,8 +497,8 @@
   <script src="/static/js/api.js?v=v2_modular"></script>
   <script src="/static/js/modules/auth.js?v=v2_modular"></script>
   <script src="/static/js/modules/registry.js?v=v2_modular"></script>
-  <script src="/static/js/modules/live_player.js?v=v2_modular"></script>
-  <script src="/static/js/modules/anpr_scanner.js?v=v2_modular"></script>
+  <script src="/static/js/modules/live_player.js?v=v6_gov"></script>
+  <script src="/static/js/modules/anpr_scanner.js?v=v3_gov"></script>
   <script src="/static/js/modules/vehicle_find.js?v=v2_modular"></script>
   <script src="/static/js/modules/map_twin.js?v=v2_modular"></script>
   <script src="/static/js/modules/alerts_threats.js?v=v2_modular"></script>
@@ -364,10 +506,7 @@
   <script src="/static/js/modules/evidence_vault.js?v=v2_modular"></script>
   <script src="/static/js/modules/cyber_tools.js?v=v2_modular"></script>
   <script src="/static/js/modules/assistant.js?v=v2_modular"></script>
-  <script src="/static/js/modules/chat_drawer.js?v=v2_modular"></script>
-  <script src="/static/js/main.js?v=v2_modular"></script>
-  <!-- BEGIN TEMP WEBCAM TEST — delete this script tag -->
-  <script src="/static/webcam_test.js?v=v2_modular"></script>
-  <!-- END TEMP WEBCAM TEST -->
+  <script src="/static/js/modules/chat_drawer.js?v=v8_gov"></script>
+  <script src="/static/js/main.js?v=v8_gov"></script>
 </body>
 </html>

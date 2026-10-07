@@ -80,7 +80,6 @@ flowchart TD
 - **`LiveStreamState`**: Manages the current active live camera stream, capture loop state, and cached latest frame with thread-safe `threading.RLock()`.
 - **`AIGuardianState`**: Maintains the lifecycle of the background AI daemon, execution cycles, and last observed license plates.
 - **`LiveTrackingState`**: Encapsulates camera-specific centroid tracking dictionaries, active vehicle IDs, and inter-frame gray-scale references.
-- **`TemporaryRelayState`**: Provides in-memory JPEG buffering for mobile phone camera relay testing.
 - **`WebSocketConnectionHub`**: Asyncio-safe hub managing connected operator clients and broadcasting incident messages.
 
 ### Security & Session Manager (`core/security.py`)

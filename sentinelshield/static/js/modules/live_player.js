@@ -35,9 +35,11 @@
 
     if (liveCams.length) {
       grid.innerHTML = liveCams.map(liveCard).join("");
+      applyLiveFilter();
     } else {
-      grid.innerHTML = "<p class='meta' style='padding:16px;background:var(--panel);border-radius:12px'>No Sentinel Gujarat live cameras found.</p>";
+      grid.innerHTML = "<p class='meta' style='padding:16px'>No Sentinel Gujarat live cameras found.</p>";
     }
+    if ($("live-cam-count")) $("live-cam-count").textContent = liveCams.length;
     if (bind) bind.innerHTML = liveCams.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
 
     const anprSel = $("anpr-cam-select");
@@ -47,15 +49,55 @@
     }
   }
 
+  let osdTimer = null;
+
+  // Monitor chrome: "off" | "live" | "paused"
+  function setViewer(mode, name) {
+    const v = $("live-viewer");
+    if (!v) return;
+    v.classList.toggle("is-live", mode !== "off");
+    v.classList.toggle("is-paused", mode === "paused");
+    if (name !== undefined && $("live-osd-name")) $("live-osd-name").textContent = name;
+    clearInterval(osdTimer);
+    if (mode === "live") {
+      const tick = () => {
+        if ($("live-osd-clock")) $("live-osd-clock").textContent = new Date().toLocaleString("en-IN", { hour12: false });
+      };
+      tick();
+      osdTimer = setInterval(tick, 1000);
+    }
+  }
+
+  function highlightPlaying() {
+    const id = SSState.get("playingCamId") || "";
+    document.querySelectorAll("#live-grid .cam").forEach((el) => {
+      el.classList.toggle("is-playing", el.getAttribute("data-cam") === id);
+    });
+  }
+
   function liveCard(c) {
     const urlArg = (c.live_url || "").replace(/'/g, "\\'");
-    return `<article class="cam">
-      <h3>${c.name} ${SSRegistry.badge(c)}</h3>
-      <div class="meta">${c.owner}<br/>Actual Sentinel Gujarat live feed</div>
-      <div class="row">
-        <button class="btn btn-g" onclick="SSLivePlayer.startLive('${c.id}', '${urlArg}')">Open live</button>
-      </div>
+    const playing = c.id === SSState.get("playingCamId") ? " is-playing" : "";
+    const num = (String(c.name || "").match(/(\d+)\s*$/) || [, "•"])[1];
+    return `<article class="cam live-item${playing}" data-cam="${c.id}" tabindex="0" role="button"
+      title="Open live: ${c.name}"
+      onclick="SSLivePlayer.startLive('${c.id}', '${urlArg}')"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <span class="live-thumb"><small>CAM</small>${num}</span>
+      <span class="live-info">
+        <b>${c.name}</b>
+        <span class="meta">${c.owner || ""}</span>
+        <span>${SSRegistry.badge(c)}</span>
+      </span>
+      <span class="live-go"><span class="go-open">Open live</span><span class="go-on">● On air</span></span>
     </article>`;
+  }
+
+  function applyLiveFilter() {
+    const q = (($("live-filter") && $("live-filter").value) || "").trim().toLowerCase();
+    document.querySelectorAll("#live-grid .cam").forEach((el) => {
+      el.hidden = !!q && !el.textContent.toLowerCase().includes(q);
+    });
   }
 
   function liveBack(n) {
@@ -97,8 +139,17 @@
     if (iframe) { iframe.removeAttribute("src"); iframe.style.display = "none"; }
     if (video) { video.removeAttribute("src"); video.style.display = "none"; }
     if (link) { link.style.display = "none"; }
+    if (window._liveCanvas) { window._liveCanvas.style.display = "none"; }
+
+    const camName = cam ? cam.name : camId;
+    SSState.set("playingCamId", camId);
+    highlightPlaying();
+    if ($("live-now")) $("live-now").textContent = "Connecting to " + camName + "…";
+    const viewer = $("live-viewer");
+    if (viewer) viewer.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     if (liveUrl.startsWith("http://") || liveUrl.startsWith("https://")) {
+      setViewer("live", camName);
       if ($("live-now")) $("live-now").textContent = "Playing " + (cam ? cam.name : camId);
       if (link) {
         link.href = liveUrl;
@@ -113,6 +164,10 @@
 
     const j = await SSApi.startLive(camId, "auto");
     if (j.error) {
+      SSState.set("playingCamId", "");
+      highlightPlaying();
+      setViewer("off");
+      if ($("live-now")) $("live-now").textContent = "Could not open " + camName + ".";
       alert(j.error || "Cannot start live");
       return;
     }
@@ -123,6 +178,7 @@
       data.ai.on = true;
     }
 
+    setViewer("live", camName);
     if ($("live-now")) $("live-now").textContent = "Playing " + (cam ? cam.name : camId);
     if (img) {
       img.style.display = "block";
@@ -139,6 +195,9 @@
     if ($("live-link")) { $("live-link").style.display = "none"; }
     if (window._liveCanvas) { window._liveCanvas.style.display = "none"; }
     if ($("live-now")) $("live-now").textContent = "Live stopped.";
+    SSState.set("playingCamId", "");
+    highlightPlaying();
+    setViewer("off");
   }
 
   function pauseLiveStream() {
@@ -165,9 +224,11 @@
       window._pausedLiveUrl = img.src;
       img.removeAttribute("src");
       if ($("live-now")) $("live-now").textContent = "Live paused.";
+      setViewer("paused");
     } else if (video && video.style.display !== "none") {
       video.pause();
       if ($("live-now")) $("live-now").textContent = "Live paused.";
+      setViewer("paused");
     }
   }
 
@@ -181,9 +242,11 @@
         img.src = "/api/live/stream?t=" + Date.now();
       }
       if ($("live-now")) $("live-now").textContent = "Playing stream...";
+      setViewer("live");
     } else if (video && video.style.display !== "none") {
       video.play();
       if ($("live-now")) $("live-now").textContent = "Playing stream...";
+      setViewer("live");
     }
   }
 
@@ -220,6 +283,7 @@
   return {
     renderLive,
     liveCard,
+    applyLiveFilter,
     liveBack,
     startLive,
     stopLive,

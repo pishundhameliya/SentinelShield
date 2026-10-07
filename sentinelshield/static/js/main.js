@@ -59,7 +59,6 @@
     if (name === "home" && city && area) SSRegistry.loadCams();
     if (name === "live") SSLivePlayer.renderLive();
     if (name === "tools") SSCyber.fillTools();
-    if (name === "webcam" && window.WebcamTest) window.WebcamTest.onShow();
   }
 
   function showApp() {
@@ -68,7 +67,6 @@
     const user = SSState.get("user");
     if ($("who")) $("who").textContent = user ? (user.name + " · " + user.role) : "";
     refresh();
-    SSChat.openWs();
     setInterval(refresh, 5000);
   }
 
@@ -140,7 +138,7 @@
       // Auto-bypass login screen for final submission
       $("login")?.classList.add("hidden");
       if ($("user")) $("user").value = "operator";
-      if ($("pass")) $("pass").value = "operator";
+      if ($("pass")) $("pass").value = "oper123";
       SSAuth.doLogin(() => showApp());
       return;
     }

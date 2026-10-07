@@ -11,7 +11,7 @@ Complete registry of all files, services, endpoints, and data tables in the Sent
 | `sentinelshield/config.py` | `Settings`, `settings` | Central configuration, typed directories, default users |
 | `sentinelshield/core/database.py` | `DatabaseManager`, `db_manager`, `utcnow` | SQLite WAL connection and transaction provider |
 | `sentinelshield/core/security.py` | `SessionManager`, `session_manager` | Token-based auth and RBAC |
-| `sentinelshield/core/state.py` | `live_stream_state`, `ai_state`, `tracking_state`, `relay_state`, `ws_hub` | Thread-safe in-memory state managers |
+| `sentinelshield/core/state.py` | `live_stream_state`, `ai_state`, `tracking_state`, `ws_hub` | Thread-safe in-memory state managers |
 | `sentinelshield/app.py` | `app`, `lifespan` | FastAPI application composer |
 | `sentinelshield/engine.py` | `detect_vehicles`, `detect_fast_alpr`, `enhance_blurry_crop`, `normalize_plate`, `read_plate_text`, ... | Backward compatibility vision re-exports |
 | `sentinelshield/gujarat_estate.py` | `CITIES`, `DEMO_CAMS`, `OWNERS`, `SENTINEL_LIVE_CAMS`, `total_cameras`, `sample_points` | Backward compatibility estate re-exports |
@@ -32,7 +32,7 @@ Complete registry of all files, services, endpoints, and data tables in the Sent
 | **Cybersecurity** | `CyberHoneypotService` | `modules/cyber/router.py` | `GET /honeypot`, `POST /honeypot`, `GET /onvif/device_service`, `GET /api/honeypot`, `GET /api/cyber` |
 | **Digital Twin** | `DigitalTwinService`, `AssistantNLPService` | `modules/twin/router.py` | `GET /api/heat`, `GET /api/twin`, `GET /api/cam-health`, `POST /api/drones/launch`, `POST /api/ask`, `GET /api/persons`, `GET /api/workflow` |
 | **Team Chat** | `ChatService` | `modules/chat/router.py` | `POST /api/chat`, `GET /api/chat`, `WS /ws` |
-| **Relay & Auth** | `SessionManager` | `modules/relay/router.py`, `modules/auth/router.py` | `POST /api/temp/webcam-relay`, `GET /api/temp/webcam-relay.jpg`, `GET /phone-send`, `POST /api/login`, `GET /api/me` |
+| **Auth** | `SessionManager` | `modules/auth/router.py` | `POST /api/login`, `GET /api/me` |
 
 ---
 

@@ -19,7 +19,6 @@ from sentinelshield.modules.cyber.router import router as cyber_router
 from sentinelshield.modules.evidence.router import router as evidence_router
 from sentinelshield.modules.registry.estate_data import CITIES, DEMO_CAMS, sample_points
 from sentinelshield.modules.registry.router import router as registry_router
-from sentinelshield.modules.relay.router import router as relay_router
 from sentinelshield.modules.streaming.ai_daemon import ai_guardian_daemon
 from sentinelshield.modules.streaming.router import router as streaming_router
 from sentinelshield.modules.tracking.router import router as tracking_router
@@ -78,7 +77,6 @@ app.include_router(evidence_router)
 app.include_router(cyber_router)
 app.include_router(twin_router)
 app.include_router(chat_router)
-app.include_router(relay_router)
 
 
 if __name__ == "__main__":

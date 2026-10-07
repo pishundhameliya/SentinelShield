@@ -16,7 +16,6 @@ You are an expert systems & AI engineer working on SentinelShield (Sentinel-X Gu
    - `sentinelshield/modules/cyber/`: Honeypot decoy traps & port scan logging.
    - `sentinelshield/modules/chat/`: Real-time WebSocket connection hub & persistence.
    - `sentinelshield/modules/auth/`: Timing-safe secrets authentication & RBAC.
-   - `sentinelshield/modules/relay/`: Mobile webcam JPEG relay testing.
 
 2. **State & Database Invariants**:
    - Never use mutable module-level globals in routes. All global state lives in `sentinelshield/core/state.py` behind `threading.RLock()` or `asyncio.Lock()`.

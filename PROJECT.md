@@ -10,7 +10,7 @@
   - `modules/evidence/`: Evidence vault sealing (`EvidenceVaultService`), courtroom forensic PDF brief builder (`pdf_builder.py` with Section 65B/BSA 2023 compliance & QR codes), and deterministic SHA-256 metadata verification.
   - `modules/alerts/`: Threat fusion and localization, alert cooldown deduplication, and asynchronous operator dispatch webhook engine (`webhooks.py`) with HMAC SHA-256 signing and circuit-breaking.
   - `modules/registry/`: Gujarat camera estate definitions across 15 zones, camera CRUD, and validated transactional CSV bulk importer (`importer.py`) with coordinate bounds checking.
-  - `modules/vision/`, `modules/tracking/`, `modules/cyber/`, `modules/twin/`, `modules/chat/`, `modules/relay/`, `modules/auth/`: Core analytical subsystems.
+  - `modules/vision/`, `modules/tracking/`, `modules/cyber/`, `modules/twin/`, `modules/chat/`, `modules/auth/`: Core analytical subsystems.
 
 ---
 

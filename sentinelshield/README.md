@@ -61,7 +61,6 @@ Work on **branches**, then pull request. Do not edit the same file at the same t
 - APIs: `app.py`
 - Video / plates: `engine.py`
 - Cities / camera counts: `gujarat_estate.py`
-- TEMP phone test: `static/webcam_test.js`, `static/phone_send.html` (easy to delete)
 
 Do **not** commit real camera passwords or 2 lakh RTSP links.
 

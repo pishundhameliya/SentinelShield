@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 import threading
-import time
 from typing import Any
 
 try:
@@ -161,24 +160,6 @@ class LiveTrackingState:
                 st["prev_gray"] = prev_gray
 
 
-class TemporaryRelayState:
-    """Thread-safe buffer for mobile phone webcam relay testing."""
-
-    def __init__(self):
-        self._lock = threading.RLock()
-        self._jpeg: bytes | None = None
-        self._timestamp: float = 0.0
-
-    def set_frame(self, jpeg_data: bytes) -> None:
-        with self._lock:
-            self._jpeg = jpeg_data
-            self._timestamp = time.time()
-
-    def get_frame(self) -> tuple[bytes | None, float]:
-        with self._lock:
-            return self._jpeg, self._timestamp
-
-
 class WebSocketConnectionHub:
     """Async-safe connection hub for WebSocket broadcasting."""
 
@@ -211,5 +192,4 @@ class WebSocketConnectionHub:
 live_stream_state = LiveStreamState()
 ai_state = AIGuardianState()
 tracking_state = LiveTrackingState()
-relay_state = TemporaryRelayState()
 ws_hub = WebSocketConnectionHub()

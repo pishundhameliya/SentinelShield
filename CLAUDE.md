@@ -13,7 +13,7 @@ SentinelShield (Sentinel-X Gujarat) is an enterprise CCTV surveillance, digital 
 - `sentinelshield/core/database.py`: Thread-safe SQLite WAL manager, schema migrations, `DatabaseMaintenanceDaemon`, `sightings_archive`, `truncate_wal()`.
 - `sentinelshield/core/state.py`: Thread-safe application state behind `threading.RLock()` and `asyncio.Lock()`.
 - `sentinelshield/core/security.py`: `SessionManager` with timing-safe `secrets.compare_digest`.
-- `sentinelshield/modules/`: 12 isolated domain subsystems (`vision`, `integrity`, `evidence`, `streaming`, `alerts`, `registry`, `tracking`, `twin`, `cyber`, `chat`, `relay`, `auth`).
+- `sentinelshield/modules/`: 11 isolated domain subsystems (`vision`, `integrity`, `evidence`, `streaming`, `alerts`, `registry`, `tracking`, `twin`, `cyber`, `chat`, `auth`).
 
 ## Key Development Invariants
 1. **Concurrency & Thread Safety**: All shared state is strictly in `core/state.py`.
