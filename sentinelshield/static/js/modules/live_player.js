@@ -78,7 +78,8 @@
   function liveCard(c) {
     const urlArg = (c.live_url || "").replace(/'/g, "\\'");
     const playing = c.id === SSState.get("playingCamId") ? " is-playing" : "";
-    const num = (String(c.name || "").match(/(\d+)\s*$/) || [, "•"])[1];
+    const num = c.custom ? "URL" : (String(c.name || "").match(/(\d+)\s*$/) || [, "•"])[1];
+    const tag = c.custom ? '<span class="badge b-warn">CUSTOM FEED</span>' : SSRegistry.badge(c);
     return `<article class="cam live-item${playing}" data-cam="${c.id}" tabindex="0" role="button"
       title="Open live: ${c.name}"
       onclick="SSLivePlayer.startLive('${c.id}', '${urlArg}')"
@@ -87,7 +88,7 @@
       <span class="live-info">
         <b>${c.name}</b>
         <span class="meta">${c.owner || ""}</span>
-        <span>${SSRegistry.badge(c)}</span>
+        <span>${tag}</span>
       </span>
       <span class="live-go"><span class="go-open">Open live</span><span class="go-on">● On air</span></span>
     </article>`;
@@ -95,9 +96,24 @@
 
   function applyLiveFilter() {
     const q = (($("live-filter") && $("live-filter").value) || "").trim().toLowerCase();
+    let shown = 0;
     document.querySelectorAll("#live-grid .cam").forEach((el) => {
       el.hidden = !!q && !el.textContent.toLowerCase().includes(q);
+      if (!el.hidden) shown++;
     });
+    const grid = $("live-grid");
+    let empty = $("live-filter-empty");
+    if (grid && !empty) {
+      empty = document.createElement("p");
+      empty.id = "live-filter-empty";
+      empty.className = "meta";
+      empty.style.padding = "12px 4px";
+      grid.appendChild(empty);
+    }
+    if (empty) {
+      empty.hidden = shown > 0 || !q;
+      empty.textContent = "No camera matches “" + q + "”.";
+    }
   }
 
   function liveBack(n) {
@@ -257,27 +273,25 @@
       alert("Paste your live camera link (e.g. https://live.sentinelgujarat.in/camera/26).");
       return;
     }
-    const cId = SSState.get("city") || "surat";
-    const aId = SSState.get("area") || "athwa";
-    const data = SSState.get("data");
-    const place = (data.cities || []).find((c) => c.id === cId)?.name || "Surat";
-
+    // Operator-connected feeds live under Gujarat → New cameras, next to the built-in Sentinel feeds
     const j = await SSApi.addCamera({
       name,
       live_url: url,
-      city_id: cId,
-      area_id: aId,
+      city_id: "gujarat",
+      area_id: "new-cameras",
       owner: "Live Sentinel Gujarat Feed",
-      place,
+      place: "Gujarat",
     });
+    if (!j || !j.ok) {
+      alert((j && j.error) || "Could not save the camera.");
+      return;
+    }
 
     if ($("shop-name")) $("shop-name").value = "";
     if ($("shop-url")) $("shop-url").value = "";
-    SSState.set("city", cId);
-    SSState.set("area", aId);
-    await SSRegistry.loadCams(false);
-    renderLive();
-    alert("Camera added! Click 'Open live' to view.");
+    if ($("live-filter")) $("live-filter").value = "";
+    await renderLive();
+    alert("Camera added. It is now at the top of the Live cameras list — click it to open the feed.");
   }
 
   return {

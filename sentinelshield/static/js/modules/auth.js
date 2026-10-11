@@ -10,15 +10,24 @@
   async function doLogin(onSuccess) {
     const userVal = $("user")?.value || "";
     const passVal = $("pass")?.value || "";
-    const j = await SSApi.login(userVal, passVal);
+    let j = {};
+    try {
+      j = await SSApi.login(userVal, passVal);
+    } catch (e) {
+      j = { ok: false, error: "Server not reachable. Check that the SentinelShield server is running." };
+    }
     if (!j.ok) {
+      // Never leave a blank page: bring the sign-in form back
+      $("app")?.classList.add("hidden");
+      $("login")?.classList.remove("hidden");
       alert(j.error || "Login failed");
-      return;
+      return false;
     }
     SSState.set("token", j.token);
     SSState.set("user", j.user);
     localStorage.setItem("ss_token", j.token);
     if (onSuccess) onSuccess();
+    return true;
   }
 
   function logout() {
@@ -29,16 +38,24 @@
     $("login")?.classList.remove("hidden");
   }
 
-  async function checkSession(onSuccess) {
+  async function checkSession(onSuccess, onInvalid) {
     const token = SSState.get("token");
-    if (!token) return;
+    if (!token) {
+      if (onInvalid) onInvalid();
+      return;
+    }
     try {
       const j = await SSApi.getMe(token);
       if (j.ok && j.user) {
         SSState.set("user", j.user);
         if (onSuccess) onSuccess();
+        return;
       }
     } catch (e) {}
+    // Sessions live in server memory, so a server restart invalidates saved tokens
+    SSState.set("token", "");
+    localStorage.removeItem("ss_token");
+    if (onInvalid) onInvalid();
   }
 
   return {

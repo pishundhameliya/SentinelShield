@@ -31,17 +31,21 @@ def _can_open_source(path: str) -> bool:
 
 
 def _demo_fallback_for_camera(camera_id: str) -> str:
-    """Prefer a camera-matching demo clip if the live feed is offline."""
+    """Return the demo clip recorded for this exact camera number, or "" if none exists.
+
+    Numbers must match whole (camera 26 -> cam26_*.mp4). Never hand back an unrelated
+    clip: showing another camera's footage as this camera's live feed is misleading.
+    """
     demos = sorted(glob.glob(os.path.join(settings.demos_dir, "*.mp4")))
-    if not demos:
+    cam_nums = {int(x) for x in re.findall(r"\d+", camera_id)}
+    if not demos or not cam_nums:
         return ""
 
-    match_ids = [str(x) for x in re.findall(r"\d+", camera_id)]
     for demo in demos:
-        base = os.path.basename(demo).lower()
-        if any(num in base for num in match_ids):
+        demo_nums = {int(x) for x in re.findall(r"\d+", os.path.basename(demo))}
+        if cam_nums & demo_nums:
             return demo
-    return demos[0]
+    return ""
 
 
 class StreamingService:
@@ -79,12 +83,13 @@ class StreamingService:
             path = url
             note = "Live camera link"
 
-        if url and not _can_open_source(url):
-            fallback = _demo_fallback_for_camera(camera_id)
-            if fallback:
-                mode = "fallback-demo"
-                path = fallback
-                note = "Live stream unavailable — demo fallback active"
+        # Only probe the link when this camera has its own demo clip to fall back to;
+        # otherwise stream the real link and let the MJPEG loop show its reconnect screen.
+        fallback = _demo_fallback_for_camera(camera_id) if url else ""
+        if fallback and not _can_open_source(url):
+            mode = "fallback-demo"
+            path = fallback
+            note = "Live stream unavailable — demo fallback active"
 
         live_stream_state.start(camera_id=camera_id, source_mode=mode, path=path)
         tracking_state.init_camera(camera_id)

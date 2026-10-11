@@ -66,7 +66,13 @@ class RegistryService:
 
     @staticmethod
     def get_live_cams() -> list[dict[str, Any]]:
-        return SENTINEL_LIVE_CAMS
+        """Operator-connected feeds (newest first), then the built-in Sentinel Gujarat feeds."""
+        custom = db_manager.query_rows(
+            "SELECT * FROM cameras WHERE live_url IS NOT NULL AND live_url != '' ORDER BY rowid DESC"
+        )
+        for cam in custom:
+            cam["custom"] = True
+        return custom + list(SENTINEL_LIVE_CAMS)
 
     @staticmethod
     def add_camera(name: str, place: str = "Surat", lat: float = 21.17, lng: float = 72.83, city_id: str = "", area_id: str = "", owner: str = "Gujarat Police", live_url: str = "") -> str:

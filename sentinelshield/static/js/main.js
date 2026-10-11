@@ -131,18 +131,23 @@
     });
   }
 
+  function autoLogin() {
+    // Auto-bypass login screen for final submission
+    $("login")?.classList.add("hidden");
+    if ($("user")) $("user").value = "operator";
+    if ($("pass")) $("pass").value = "oper123";
+    SSAuth.doLogin(() => showApp());
+  }
+
   function boot() {
     setupEventDelegation();
-    const token = SSState.get("token");
     if (!SSState.get("token")) {
-      // Auto-bypass login screen for final submission
-      $("login")?.classList.add("hidden");
-      if ($("user")) $("user").value = "operator";
-      if ($("pass")) $("pass").value = "oper123";
-      SSAuth.doLogin(() => showApp());
+      autoLogin();
       return;
     }
-    SSAuth.checkSession(() => showApp());
+    // Saved token may be stale after a server restart — fall back to a fresh login
+    $("login")?.classList.add("hidden");
+    SSAuth.checkSession(() => showApp(), autoLogin);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
