@@ -42,9 +42,23 @@ class Settings:
     enable_fast_alpr: bool = field(
         default_factory=lambda: os.environ.get("SENTINEL_FAST_ALPR", "1").lower() not in {"0", "false", "off", "no"}
     )
-    open_lpr_url: str = field(
-        default_factory=lambda: os.environ.get("OPEN_LPR_URL", "http://localhost:8000/api/v1/ocr/")
+    # Optional external Open-LPR OCR service; empty = not used. (The old default pointed at
+    # this server's own port, so every plate read made a failing self-request.)
+    open_lpr_url: str = field(default_factory=lambda: os.environ.get("OPEN_LPR_URL", ""))
+    # ANPR engine (modules/vision/plate_recognizer.py)
+    anpr_detector_model: str = field(
+        default_factory=lambda: os.environ.get("SENTINEL_ANPR_DETECTOR", "yolo-v9-t-384-license-plate-end2end")
     )
+    anpr_ocr_model: str = field(
+        default_factory=lambda: os.environ.get("SENTINEL_ANPR_OCR", "cct-xs-v2-global-model")
+    )
+    anpr_detector_conf: float = field(
+        default_factory=lambda: float(os.environ.get("SENTINEL_ANPR_DET_CONF", "0.4"))
+    )
+    anpr_min_ocr_conf: float = field(
+        default_factory=lambda: float(os.environ.get("SENTINEL_ANPR_MIN_CONF", "0.5"))
+    )
+    anpr_home_state: str = field(default_factory=lambda: os.environ.get("SENTINEL_ANPR_HOME_STATE", "GJ"))
 
 
 settings = Settings()

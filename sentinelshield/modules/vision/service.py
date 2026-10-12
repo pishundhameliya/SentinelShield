@@ -108,7 +108,7 @@ class VisionService:
             if alpr_result["plate"] in known_plates:
                 continue
             plates_found.append({
-                "vehicle": {"cls": "fast-alpr", "confidence": alpr_result["confidence"]},
+                "vehicle": {"cls": "vehicle", "confidence": alpr_result["confidence"]},
                 "plate_text": alpr_result["plate"],
                 "raw_plate": alpr_result["plate"],
                 "ocr_confidence": alpr_result["confidence"],

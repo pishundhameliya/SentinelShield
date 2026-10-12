@@ -26,9 +26,16 @@ except ImportError:
 from sentinelshield.config import settings
 from sentinelshield.core.database import db_manager
 from sentinelshield.core.state import live_stream_state
+from sentinelshield.modules.vision.plate_recognizer import plate_recognizer
 from sentinelshield.modules.vision.service import vision_service
 
 router = APIRouter(tags=["vision"])
+
+
+@router.get("/api/anpr/status")
+def anpr_status():
+    """Report whether the number plate recognition engine is loaded and usable."""
+    return plate_recognizer.status()
 
 
 def _collect_camera_source_candidates(camera_id: str, cam: dict[str, Any] | None) -> list[str]:
@@ -87,7 +94,7 @@ def scan_live_anpr(camera_id: str):
     """Scan live frame from camera, run vehicle detection & deblurred ANPR, and save timestamped annotated photo."""
     cam = db_manager.query_one("SELECT * FROM cameras WHERE id=?", camera_id)
     if not cam:
-        from modules.registry.estate_data import SENTINEL_LIVE_CAMS
+        from sentinelshield.modules.registry.estate_data import SENTINEL_LIVE_CAMS
         cam = next((item for item in SENTINEL_LIVE_CAMS if item["id"] == camera_id), None)
     if not cam:
         return JSONResponse({"error": "Camera not found"}, 404)

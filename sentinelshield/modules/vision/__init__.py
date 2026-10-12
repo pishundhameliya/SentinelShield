@@ -9,6 +9,7 @@ from sentinelshield.modules.vision.alpr_ocr import (
     extract_plate_candidate,
     read_plate_text,
 )
+from sentinelshield.modules.vision.plate_recognizer import plate_recognizer, PlateRecognizer, parse_indian_plate
 from sentinelshield.modules.vision.service import vision_service, VisionService
 from sentinelshield.modules.vision.router import router as vision_router
 
@@ -22,6 +23,9 @@ __all__ = [
     "detect_fast_alpr",
     "extract_plate_candidate",
     "read_plate_text",
+    "plate_recognizer",
+    "PlateRecognizer",
+    "parse_indian_plate",
     "vision_service",
     "VisionService",
     "vision_router",

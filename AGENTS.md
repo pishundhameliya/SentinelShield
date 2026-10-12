@@ -57,8 +57,8 @@ Code is strictly segregated into domain subsystems inside `sentinelshield/module
 - The root `README.md` must remain 100% clean and untouched when submitting PRs to upstream (`pishundhameliya/SentinelShield`).
 - All technical documentation, governance protocols, and subsystem maps must be placed in `docs/` or dedicated platform files (`GEMINI.md`, `PROJECT.md`, `TEST_INFRA.md`).
 
-### E. Zero-Dependency cv2.py Compatibility Shim Invariant
-- Any newly introduced OpenCV function, constant, or filter must be mirrored in `sentinelshield/cv2.py` with valid ndarray return shapes to ensure 100% test passing in headless test runners.
+### E. Real OpenCV in Tests
+- Tests run against the real `opencv-python-headless` package. Do not add local modules named after third-party packages (e.g. `cv2.py`, `pytest.py`) inside `sentinelshield/` — they shadow the real libraries on `sys.path`.
 
 ---
 

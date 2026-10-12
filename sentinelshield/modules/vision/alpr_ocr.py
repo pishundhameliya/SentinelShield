@@ -19,6 +19,7 @@ except ImportError:
 
 from sentinelshield.config import settings
 from sentinelshield.modules.vision.deblur import enhance_blurry_crop
+from sentinelshield.modules.vision.plate_recognizer import plate_recognizer
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,28 @@ def extract_plates_from_text(*texts: str) -> list[str]:
 
 
 def detect_fast_alpr(frame: np.ndarray) -> list[dict[str, Any]]:
-    return []
+    """Full-frame plate detection + OCR via the fast-alpr ANPR engine.
+
+    Each result: {"plate", "formatted", "valid", "corrected", "raw_text",
+    "confidence", "det_confidence", "box": {x, y, w, h}}.
+    """
+    return plate_recognizer.detect(frame)
+
+
+def _candidate_from_box(vehicle_crop: np.ndarray, box: dict[str, int]) -> dict[str, Any] | None:
+    px, py, pw, ph = box["x"], box["y"], box["w"], box["h"]
+    plate_crop = vehicle_crop[py:py + ph, px:px + pw]
+    if plate_crop.size == 0:
+        return None
+    enh = enhance_blurry_crop(plate_crop)
+    return {
+        "box": {"x": px, "y": py, "w": pw, "h": ph},
+        "crop": plate_crop,
+        "enhanced_crop_b64": enh["b64"],
+        "deblur_score": enh["laplacian_score"],
+        "enhanced_bgr": enh["enhanced_bgr"],
+        "located_by": "fast-alpr",
+    }
 
 
 def extract_plate_candidate(vehicle_crop: np.ndarray) -> dict[str, Any] | None:
@@ -122,6 +144,13 @@ def extract_plate_candidate(vehicle_crop: np.ndarray) -> dict[str, Any] | None:
                     return cand
         except Exception:
             pass
+
+    # fast-alpr ONNX plate detector (no torch needed)
+    box = plate_recognizer.locate(vehicle_crop)
+    if box:
+        cand = _candidate_from_box(vehicle_crop, box)
+        if cand:
+            return cand
 
     # Fallback to morphological
     h, w = vehicle_crop.shape[:2]
@@ -175,7 +204,12 @@ def extract_plate_candidate(vehicle_crop: np.ndarray) -> dict[str, Any] | None:
 def read_plate_text(plate_crop: np.ndarray) -> tuple[str | None, float]:
     if plate_crop is None or plate_crop.size == 0:
         return None, 0.0
-        
+
+    # fast-alpr plate OCR with Indian-format correction
+    plate, conf = plate_recognizer.read(plate_crop)
+    if plate:
+        return plate, conf
+
     ocr = _init_paddle_ocr()
     if ocr is not None:
         try:
@@ -194,8 +228,10 @@ def read_plate_text(plate_crop: np.ndarray) -> tuple[str | None, float]:
         except Exception:
             pass
 
-    # Try Open-LPR
+    # Try Open-LPR (only when an external service is configured via OPEN_LPR_URL)
     try:
+        if not settings.open_lpr_url:
+            raise RuntimeError("Open-LPR not configured")
         import requests
         ok, buf = cv2.imencode(".jpg", plate_crop)
         if ok:

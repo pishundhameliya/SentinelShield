@@ -38,13 +38,18 @@ def run_verification() -> int:
     failed_count = 0
     passed_count = 0
 
+    # Suites import the `sentinelshield` package, so the repo root must be importable
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(p for p in (base_dir, env.get("PYTHONPATH", "")) if p)
+
     for test_path in test_files:
         rel_name = os.path.relpath(test_path, base_dir)
         t0 = time.perf_counter()
-        
+
         proc = subprocess.run(
             [python_exe, test_path],
             cwd=base_dir,
+            env=env,
             capture_output=True,
             text=True,
         )
