@@ -117,7 +117,13 @@ def _candidate_from_box(vehicle_crop: np.ndarray, box: dict[str, int]) -> dict[s
     }
 
 
-def extract_plate_candidate(vehicle_crop: np.ndarray) -> dict[str, Any] | None:
+def extract_plate_candidate(vehicle_crop: np.ndarray, allow_guess: bool = True) -> dict[str, Any] | None:
+    """Locate the number plate inside a vehicle crop.
+
+    With allow_guess=False only a plate found by a detector model is returned (or None);
+    the edge-heuristic / fixed-position guess is skipped, so callers never draw or OCR
+    a made-up plate region.
+    """
     if vehicle_crop is None or vehicle_crop.size == 0:
         return None
 
@@ -151,6 +157,9 @@ def extract_plate_candidate(vehicle_crop: np.ndarray) -> dict[str, Any] | None:
         cand = _candidate_from_box(vehicle_crop, box)
         if cand:
             return cand
+
+    if not allow_guess:
+        return None
 
     # Fallback to morphological
     h, w = vehicle_crop.shape[:2]

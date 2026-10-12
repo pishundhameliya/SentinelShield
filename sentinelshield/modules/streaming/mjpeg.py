@@ -29,7 +29,7 @@ import os
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 
 from sentinelshield.modules.vision.deblur import blur_box
-from sentinelshield.modules.vision.vehicle_detector import detect_vehicles
+from sentinelshield.modules.vision.vehicle_detector import detect_vehicles_nonblocking
 
 _stream_pool = StreamWorkerPool()
 
@@ -40,17 +40,27 @@ def live_analytics_frame(camera_id: str, frame: np.ndarray) -> np.ndarray:
         return frame
 
     state = tracking_state.get_camera_state(camera_id)
-    vehicles = detect_vehicles(frame, state.get("prev_gray"))
+    # Neural detection runs on a background worker so the video never stalls; only a
+    # newly finished result is tracked, so the same boxes are not counted twice.
+    vehicles, fresh = detect_vehicles_nonblocking(frame, state)
     state["prev_gray"] = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    if not fresh:
+        vehicles = []
 
-    active_tracks, track_results = CentroidVehicleTracker.associate_tracks(camera_id, vehicles, state)
+    # Results arrive every ~1-3 s on CPU, so keep tracks longer and allow larger moves
+    # between sightings than the per-frame defaults; otherwise vehicles are re-counted.
+    active_tracks, track_results = CentroidVehicleTracker.associate_tracks(
+        camera_id, vehicles, state,
+        distance_threshold=max(100.0, frame.shape[1] * 0.12),
+        max_age_s=8.0,
+    )
     watch = {normalize_plate(r["plate"]): dict(r) for r in db_manager.query_rows("SELECT * FROM watchlist")}
     cam = db_manager.query_one("SELECT * FROM cameras WHERE id=?", camera_id) or {}
 
     for track_id, vehicle, is_new in track_results:
         track = active_tracks[track_id]
         v_crop = frame[vehicle["y"]:vehicle["y"] + vehicle["h"], vehicle["x"]:vehicle["x"] + vehicle["w"]]
-        candidate = extract_plate_candidate(v_crop) if v_crop.size > 0 else None
+        candidate = extract_plate_candidate(v_crop, allow_guess=False) if v_crop.size > 0 else None
         plate_box = None
         plate = track.get("plate")
         confidence = track.get("confidence", 0.0)

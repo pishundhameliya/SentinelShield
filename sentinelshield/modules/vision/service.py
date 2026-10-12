@@ -70,7 +70,7 @@ class VisionService:
 
             v_crop = frame[vy:vy + vh, vx:vx + vw]
             if v_crop.size > 0:
-                cand = extract_plate_candidate(v_crop)
+                cand = extract_plate_candidate(v_crop, allow_guess=False)
                 if cand:
                     px, py, pw, ph = cand["box"]["x"], cand["box"]["y"], cand["box"]["w"], cand["box"]["h"]
                     abs_px, abs_py = vx + px, vy + py
@@ -107,6 +107,11 @@ class VisionService:
         for alpr_result in fast_alpr_results:
             if alpr_result["plate"] in known_plates:
                 continue
+            known_plates.add(alpr_result["plate"])
+            b = alpr_result["box"]
+            cv2.rectangle(annotated, (b["x"], b["y"]), (b["x"] + b["w"], b["y"] + b["h"]), (255, 200, 0), 2)
+            cv2.putText(annotated, alpr_result["plate"], (b["x"], max(40, b["y"] - 6)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 200, 0), 2)
             plates_found.append({
                 "vehicle": {"cls": "vehicle", "confidence": alpr_result["confidence"]},
                 "plate_text": alpr_result["plate"],

@@ -59,6 +59,14 @@ class Settings:
         default_factory=lambda: float(os.environ.get("SENTINEL_ANPR_MIN_CONF", "0.5"))
     )
     anpr_home_state: str = field(default_factory=lambda: os.environ.get("SENTINEL_ANPR_HOME_STATE", "GJ"))
+    # Vehicle detector (modules/vision/vehicle_detector.py). "rf-detr-nano-384-coco" is ~2x
+    # faster on slow CPUs; "rf-detr-small-512-coco" finds more partly hidden vehicles.
+    vehicle_model: str = field(
+        default_factory=lambda: os.environ.get("SENTINEL_VEHICLE_MODEL", "rf-detr-small-512-coco")
+    )
+    vehicle_min_conf: float = field(
+        default_factory=lambda: float(os.environ.get("SENTINEL_VEHICLE_MIN_CONF", "0.4"))
+    )
 
 
 settings = Settings()

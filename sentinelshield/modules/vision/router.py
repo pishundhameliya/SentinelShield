@@ -28,14 +28,17 @@ from sentinelshield.core.database import db_manager
 from sentinelshield.core.state import live_stream_state
 from sentinelshield.modules.vision.plate_recognizer import plate_recognizer
 from sentinelshield.modules.vision.service import vision_service
+from sentinelshield.modules.vision.vehicle_detector import detector_status
 
 router = APIRouter(tags=["vision"])
 
 
 @router.get("/api/anpr/status")
 def anpr_status():
-    """Report whether the number plate recognition engine is loaded and usable."""
-    return plate_recognizer.status()
+    """Report whether the number plate and vehicle detection engines are loaded and usable."""
+    status = plate_recognizer.status()
+    status["vehicle_detector"] = detector_status()
+    return status
 
 
 def _collect_camera_source_candidates(camera_id: str, cam: dict[str, Any] | None) -> list[str]:

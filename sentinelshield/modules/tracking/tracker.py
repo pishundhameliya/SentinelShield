@@ -14,6 +14,7 @@ class CentroidVehicleTracker:
         vehicles: list[dict[str, Any]],
         state: dict[str, Any],
         distance_threshold: float = 100.0,
+        max_age_s: float = 2.5,
     ) -> tuple[dict[str, Any], list[tuple[str, dict[str, Any], bool]]]:
         """Associate detected vehicle bounding boxes with active tracks.
         
@@ -57,11 +58,11 @@ class CentroidVehicleTracker:
 
             track_results.append((track_id, vehicle, is_new))
 
-        # Filter out tracks not seen for >2.5s, merging recently seen active tracks
+        # Filter out tracks not seen for > max_age_s, merging recently seen active tracks
         now = time.time()
         merged_tracks = dict(existing_tracks)
         merged_tracks.update(current)
-        active_tracks = {k: v for k, v in merged_tracks.items() if now - v.get("last_seen", 0) < 2.5}
+        active_tracks = {k: v for k, v in merged_tracks.items() if now - v.get("last_seen", 0) < max_age_s}
 
         state["tracks"] = active_tracks
         state["next_id"] = next_id
