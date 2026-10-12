@@ -67,6 +67,17 @@ class Settings:
     vehicle_min_conf: float = field(
         default_factory=lambda: float(os.environ.get("SENTINEL_VEHICLE_MIN_CONF", "0.4"))
     )
+    # Automatic ANPR on the camera currently open in Live (modules/vision/auto_anpr.py)
+    auto_anpr_enabled: bool = field(
+        default_factory=lambda: os.environ.get("SENTINEL_AUTO_ANPR", "1").lower() not in {"0", "false", "off", "no"}
+    )
+    auto_anpr_interval_s: float = field(
+        default_factory=lambda: float(os.environ.get("SENTINEL_AUTO_ANPR_INTERVAL", "2.0"))
+    )
+    # The same plate on the same camera is recorded once per this many seconds
+    auto_anpr_dedupe_s: float = field(
+        default_factory=lambda: float(os.environ.get("SENTINEL_AUTO_ANPR_DEDUPE", "60"))
+    )
 
 
 settings = Settings()

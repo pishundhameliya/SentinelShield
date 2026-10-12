@@ -114,9 +114,87 @@
     }
   }
 
+  // ---------------------------------------------------------- automatic scan
+  let autoEnabled = true;
+  let autoBusy = false;
+
+  function liveTabVisible() {
+    const sec = $("p-live");
+    return !!sec && !sec.classList.contains("hidden") && !document.hidden;
+  }
+
+  function autoReadCard(r) {
+    const conf = Math.round(Number(r.confidence || 0) * 100);
+    const time = String(r.seen_at || "").slice(11, 19);
+    const wl = r.watchlist
+      ? `<span class="badge b-bad">${escapeHtml(String(r.watchlist.kind).toUpperCase())}</span>`
+      : "";
+    return `<div class="auto-read${r.watchlist ? " hit" : ""}">
+      ${r.plate_image ? `<img src="${r.plate_image}" alt="Plate ${escapeHtml(r.plate)}" />` : ""}
+      <div class="plate-num"><span class="ind">IND</span><span class="txt">${escapeHtml(r.formatted || r.plate)}</span></div>
+      <div class="meta">${escapeHtml(r.vehicle_type || "vehicle")} · ${conf}% · ${escapeHtml(time)} ${wl}</div>
+    </div>`;
+  }
+
+  function renderAuto(s) {
+    const status = $("auto-anpr-status");
+    const reads = $("auto-anpr-reads");
+    const box = $("auto-anpr");
+    const btn = $("btn-auto-anpr");
+    autoEnabled = !!s.enabled;
+    if (btn) btn.textContent = autoEnabled ? "Turn off" : "Turn on";
+    const liveCam = s.live_camera_id;
+    const scanning = autoEnabled && s.engine_ready && !!liveCam;
+    if (box) box.classList.toggle("is-on", scanning);
+    if (box) box.classList.toggle("is-off", !autoEnabled);
+
+    const cams = SSState.get("liveCams") || [];
+    const cam = cams.find((c) => c.id === liveCam);
+    const name = cam ? cam.name : liveCam;
+    let text;
+    if (!autoEnabled) text = "Off — press Turn on to read number plates automatically.";
+    else if (!s.engine_ready) text = "Loading AI models…";
+    else if (!liveCam) text = "Waiting — open a live camera above (stream feeds only; embedded web-page feeds cannot be scanned).";
+    else text = `Scanning ${name} every ${s.interval_s} s · ${s.plates_recorded} plates recorded this session`;
+    if (status) status.textContent = text;
+
+    if (reads) {
+      const list = (s.recent || []).filter((r) => !liveCam || r.camera_id === liveCam);
+      reads.innerHTML = list.length
+        ? list.map(autoReadCard).join("")
+        : `<p class="meta">${scanning ? "No number plates read yet on this camera — they appear here automatically." : "Open a live camera — vehicles and number plates are scanned automatically, no button needed."}</p>`;
+    }
+  }
+
+  async function pollAuto() {
+    if (autoBusy || !liveTabVisible()) return;
+    autoBusy = true;
+    try {
+      const s = await SSApi.getAutoAnpr("");
+      renderAuto(s);
+      if (s.live_camera_id && s.live_camera_id === SSState.get("currentLiveCamId")) await refreshLiveVehicles();
+    } catch (e) {
+      if ($("auto-anpr-status")) $("auto-anpr-status").textContent = "Server not reachable.";
+    } finally {
+      autoBusy = false;
+    }
+  }
+
+  async function toggleAutoScan() {
+    try {
+      await SSApi.setAutoAnpr(!autoEnabled);
+    } catch (e) {}
+    autoBusy = false;
+    await pollAuto();
+  }
+
+  setInterval(pollAuto, 3000);
+
   return {
     onAnprCamChanged,
     refreshLiveVehicles,
     runLiveAnprScan,
+    toggleAutoScan,
+    pollAuto,
   };
 });

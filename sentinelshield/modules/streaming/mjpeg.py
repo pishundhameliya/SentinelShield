@@ -20,15 +20,10 @@ from sentinelshield.core.state import live_stream_state, tracking_state
 from sentinelshield.modules.streaming.hw_accel import create_hw_videocapture, safe_release_capture
 from sentinelshield.modules.streaming.stream_pool import StreamWorkerPool
 from sentinelshield.modules.tracking.tracker import CentroidVehicleTracker
-from sentinelshield.modules.vision.alpr_ocr import (
-    extract_plate_candidate,
-    normalize_plate,
-    read_plate_text,
-)
 import os
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 
-from sentinelshield.modules.vision.deblur import blur_box
+from sentinelshield.modules.vision.auto_anpr import camera_info
 from sentinelshield.modules.vision.vehicle_detector import detect_vehicles_nonblocking
 
 _stream_pool = StreamWorkerPool()
@@ -54,70 +49,22 @@ def live_analytics_frame(camera_id: str, frame: np.ndarray) -> np.ndarray:
         distance_threshold=max(100.0, frame.shape[1] * 0.12),
         max_age_s=8.0,
     )
-    watch = {normalize_plate(r["plate"]): dict(r) for r in db_manager.query_rows("SELECT * FROM watchlist")}
-    cam = db_manager.query_one("SELECT * FROM cameras WHERE id=?", camera_id) or {}
+    # Plates are read by the automatic ANPR daemon (modules/vision/auto_anpr.py), which
+    # attaches each plate to its track and writes sightings / watchlist alerts. Here we
+    # only count new vehicles and draw boxes.
+    cam = camera_info(camera_id) if track_results else {}
 
     for track_id, vehicle, is_new in track_results:
         track = active_tracks[track_id]
-        v_crop = frame[vehicle["y"]:vehicle["y"] + vehicle["h"], vehicle["x"]:vehicle["x"] + vehicle["w"]]
-        candidate = extract_plate_candidate(v_crop, allow_guess=False) if v_crop.size > 0 else None
-        plate_box = None
         plate = track.get("plate")
-        confidence = track.get("confidence", 0.0)
-
-        if candidate:
-            plate_box = dict(candidate["box"])
-            plate_box["x"] += vehicle["x"]
-            plate_box["y"] += vehicle["y"]
-            plate_read, conf_read = read_plate_text(candidate["enhanced_bgr"])
-            if plate_read:
-                plate = normalize_plate(plate_read)
-                track["plate"] = plate
-                track["confidence"] = conf_read
 
         if is_new:
-            record_plate = plate or "Plate Not Clear"
             db_manager.execute(
                 "INSERT INTO vehicle_detections VALUES(?,?,?,?,?,?,?,?,?,?)",
                 "vd-" + uuid.uuid4().hex[:10], camera_id, vehicle.get("cls", "vehicle"),
-                track_id, record_plate, confidence, utcnow(), cam.get("lat"), cam.get("lng"), cam.get("place"),
+                track_id, plate or "Plate Not Clear", track.get("confidence", 0.0), utcnow(),
+                cam.get("lat"), cam.get("lng"), cam.get("place"),
             )
-            if plate:
-                track["saved"] = True
-                db_manager.execute(
-                    "INSERT INTO sightings VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-                    "see-" + uuid.uuid4().hex[:10], plate, camera_id, cam.get("name"), cam.get("place"),
-                    cam.get("city_id"), cam.get("area_id"), cam.get("lat"), cam.get("lng"), utcnow(), "live-ai",
-                )
-                if plate in watch:
-                    item = watch[plate]
-                    db_manager.execute(
-                        "INSERT INTO alerts VALUES(?,?,?,?,?,?,?,?,?,?)",
-                        "al-" + uuid.uuid4().hex[:10], camera_id, "watchlist", f"Watchlist hit {plate}",
-                        f"{item['kind'].upper()} — {item['note']}", item.get("priority") or "HIGH", 100, 0, utcnow(), "new",
-                    )
-        else:
-            if plate and not track.get("saved"):
-                track["saved"] = True
-                db_manager.execute(
-                    "UPDATE vehicle_detections SET plate=?, confidence=? WHERE tracking_id=?",
-                    plate, confidence, track_id,
-                )
-                db_manager.execute(
-                    "INSERT INTO sightings VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-                    "see-" + uuid.uuid4().hex[:10], plate, camera_id, cam.get("name"), cam.get("place"),
-                    cam.get("city_id"), cam.get("area_id"), cam.get("lat"), cam.get("lng"), utcnow(), "live-ai",
-                )
-                if plate in watch:
-                    item = watch[plate]
-                    db_manager.execute(
-                        "INSERT INTO alerts VALUES(?,?,?,?,?,?,?,?,?,?)",
-                        "al-" + uuid.uuid4().hex[:10], camera_id, "watchlist", f"Watchlist hit {plate}",
-                        f"{item['kind'].upper()} — {item['note']}", item.get("priority") or "HIGH", 100, 0, utcnow(), "new",
-                    )
-
-        if plate_box:
-            blur_box(frame, plate_box)
 
         cv2.rectangle(
             frame,
@@ -128,7 +75,7 @@ def live_analytics_frame(camera_id: str, frame: np.ndarray) -> np.ndarray:
         )
         cv2.putText(
             frame,
-            f"{track_id} {vehicle.get('cls', 'vehicle')}",
+            f"{vehicle.get('cls', 'vehicle')} {plate or ''}".strip(),
             (vehicle["x"], max(20, vehicle["y"] - 8)),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,

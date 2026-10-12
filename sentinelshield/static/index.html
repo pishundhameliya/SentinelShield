@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/css/styles.css?v=v8_gov" />
+  <link rel="stylesheet" href="/static/css/styles.css?v=v12_auto" />
 </head>
 <body>
   <!-- Shared crest mark -->
@@ -337,6 +337,22 @@
         <div class="box" style="margin-top:14px">
           <h3>ANPR &amp; Deblurred CCTV Plate Scanner (Vehicle-Detection + Fast-ALPR)</h3>
           <p class="meta">Extracts vehicles, applies CLAHE contrast boost &amp; unsharp mask deblurring to read low-res / blurry CCTV number plates.</p>
+
+          <div class="auto-anpr" id="auto-anpr">
+            <div class="auto-head">
+              <span class="auto-dot" aria-hidden="true"></span>
+              <div class="auto-text">
+                <b>Automatic AI scan</b>
+                <span class="meta" id="auto-anpr-status">Starting…</span>
+              </div>
+              <button class="btn btn-s" type="button" id="btn-auto-anpr" onclick="SSAnpr.toggleAutoScan()">Turn off</button>
+            </div>
+            <div class="auto-reads" id="auto-anpr-reads">
+              <p class="meta">Open a live camera — vehicles and number plates are scanned automatically, no button needed.</p>
+            </div>
+          </div>
+
+          <p class="meta" style="margin-top:14px"><b>Manual scan</b> — takes a full annotated photo of the selected feed.</p>
           <div class="row" style="margin-bottom:8px">
             <label for="anpr-cam-select" style="margin:0">Selected CCTV feed:</label>
             <select id="anpr-cam-select" class="anpr-select" onchange="onAnprCamChanged(this.value)">
@@ -494,11 +510,11 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/static/js/state.js?v=v2_modular"></script>
-  <script src="/static/js/api.js?v=v2_modular"></script>
+  <script src="/static/js/api.js?v=v12_auto"></script>
   <script src="/static/js/modules/auth.js?v=v9_gov"></script>
   <script src="/static/js/modules/registry.js?v=v2_modular"></script>
   <script src="/static/js/modules/live_player.js?v=v11_gov"></script>
-  <script src="/static/js/modules/anpr_scanner.js?v=v3_gov"></script>
+  <script src="/static/js/modules/anpr_scanner.js?v=v12_auto"></script>
   <script src="/static/js/modules/vehicle_find.js?v=v2_modular"></script>
   <script src="/static/js/modules/map_twin.js?v=v2_modular"></script>
   <script src="/static/js/modules/alerts_threats.js?v=v2_modular"></script>
@@ -507,6 +523,6 @@
   <script src="/static/js/modules/cyber_tools.js?v=v2_modular"></script>
   <script src="/static/js/modules/assistant.js?v=v2_modular"></script>
   <script src="/static/js/modules/chat_drawer.js?v=v8_gov"></script>
-  <script src="/static/js/main.js?v=v9_gov"></script>
+  <script src="/static/js/main.js?v=v12_auto"></script>
 </body>
 </html>

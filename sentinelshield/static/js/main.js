@@ -57,7 +57,10 @@
     if (name === "find") setTimeout(() => { if (window._lastFind) SSVehicleFind.drawFindMap(window._lastFind); }, 50);
     if (name === "cams" && city && area) SSRegistry.loadCams();
     if (name === "home" && city && area) SSRegistry.loadCams();
-    if (name === "live") SSLivePlayer.renderLive();
+    if (name === "live") {
+      SSLivePlayer.renderLive();
+      if (window.SSAnpr) SSAnpr.pollAuto();
+    }
     if (name === "tools") SSCyber.fillTools();
   }
 

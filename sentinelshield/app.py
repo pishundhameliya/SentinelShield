@@ -24,6 +24,7 @@ from sentinelshield.modules.streaming.router import router as streaming_router
 from sentinelshield.modules.tracking.router import router as tracking_router
 from sentinelshield.modules.twin.router import router as twin_router
 from sentinelshield.modules.vision import vehicle_detector
+from sentinelshield.modules.vision.auto_anpr import auto_anpr_daemon
 from sentinelshield.modules.vision.plate_recognizer import plate_recognizer
 from sentinelshield.modules.vision.router import router as vision_router
 
@@ -38,10 +39,12 @@ async def lifespan(_app: FastAPI):
     )
     plate_recognizer.warm_up()
     vehicle_detector.warm_up()
+    auto_anpr_daemon.start()
     ai_guardian_daemon.start()
     db_maintenance_daemon.start()
     webhook_dispatch_service.start_worker()
     yield
+    auto_anpr_daemon.stop()
     webhook_dispatch_service.stop_worker()
     db_maintenance_daemon.stop()
     ai_guardian_daemon.stop()

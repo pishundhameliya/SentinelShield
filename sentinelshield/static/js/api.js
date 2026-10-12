@@ -34,6 +34,8 @@
     startLive: (camera_id, source = "auto") => postForm("/api/live/start", { camera_id, source }),
     stopLive: () => postForm("/api/live/stop", {}),
     scanLiveAnpr: (camera_id) => postForm(`/api/anpr/scan-live/${camera_id}`, {}),
+    getAutoAnpr: (camera_id = "") => getJson(`/api/anpr/auto?camera_id=${encodeURIComponent(camera_id)}&limit=12`),
+    setAutoAnpr: (on) => postForm(`/api/anpr/auto/${on ? "on" : "off"}`, {}),
     analyzeCamera: (camera_id) => postForm(`/api/analyze/${camera_id}`, {}),
     getJob: (job_id) => getJson(`/api/job/${job_id}`),
     findVehicle: (plate) => getJson(`/api/vehicle?plate=${encodeURIComponent(plate || "")}`),

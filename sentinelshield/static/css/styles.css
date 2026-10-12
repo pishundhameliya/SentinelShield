@@ -899,6 +899,61 @@ td .btn { padding: 5px 10px; font-size: 12px; }
 .plate-card .ok { font-size: 11px; color: var(--good); font-weight: 600; margin-top: 2px; }
 .plate-card .btn { display: flex; width: 100%; margin-top: 10px; text-decoration: none; }
 
+/* Automatic ANPR panel */
+.auto-anpr {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid #9aa4b5;
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  padding: 12px 14px;
+}
+.auto-anpr.is-on { border-left-color: var(--india-green); background: #f3faf2; }
+.auto-anpr.is-off { border-left-color: var(--line-strong); }
+.auto-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.auto-text { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+.auto-text b { color: var(--gov-navy); }
+.auto-dot { width: 10px; height: 10px; border-radius: 50%; background: #9aa4b5; flex: 0 0 auto; }
+.auto-anpr.is-on .auto-dot { background: var(--india-green); animation: auto-pulse 1.6s ease-in-out infinite; }
+@keyframes auto-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(19, 136, 8, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(19, 136, 8, 0); }
+}
+.auto-reads {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin-top: 10px;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.auto-reads > .meta { margin: 0; }
+.auto-read {
+  flex: 0 0 auto;
+  width: 190px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gov-blue);
+  border-radius: var(--radius);
+  padding: 8px;
+  animation: auto-in 0.3s ease-out;
+}
+.auto-read.hit { border-top-color: var(--bad); background: #fdf1f1; }
+.auto-read img {
+  display: block;
+  width: 100%;
+  height: 48px;
+  object-fit: contain;
+  background: #0d1117;
+  border-radius: 3px;
+  margin-bottom: 6px;
+}
+.auto-read .plate-num { display: flex; border: 2px solid #111; border-radius: 4px; overflow: hidden; background: #fff; margin-bottom: 4px; }
+.auto-read .plate-num .ind { background: #1f3f99; color: #fff; font-size: 8px; font-weight: 700; padding: 3px 4px; display: grid; place-items: center; }
+.auto-read .plate-num .txt { flex: 1; text-align: center; font-size: 13.5px; font-weight: 800; letter-spacing: 0.06em; color: #111; padding: 3px 4px; font-family: "Roboto Mono", Consolas, monospace; white-space: nowrap; }
+.auto-read .meta { font-size: 11px; }
+@keyframes auto-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
 /* Code / pre */
 code {
   background: var(--panel-2);

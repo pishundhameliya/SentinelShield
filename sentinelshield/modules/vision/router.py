@@ -24,8 +24,8 @@ except ImportError:
     cv2 = None  # type: ignore
 
 from sentinelshield.config import settings
-from sentinelshield.core.database import db_manager
-from sentinelshield.core.state import live_stream_state
+from sentinelshield.core.database import db_manager, utcnow
+from sentinelshield.core.state import auto_anpr_state, live_stream_state
 from sentinelshield.modules.vision.plate_recognizer import plate_recognizer
 from sentinelshield.modules.vision.service import vision_service
 from sentinelshield.modules.vision.vehicle_detector import detector_status
@@ -38,7 +38,28 @@ def anpr_status():
     """Report whether the number plate and vehicle detection engines are loaded and usable."""
     status = plate_recognizer.status()
     status["vehicle_detector"] = detector_status()
+    status["auto_scan"] = {k: v for k, v in auto_anpr_state.snapshot(limit=0).items() if k != "recent"}
     return status
+
+
+@router.get("/api/anpr/auto")
+def anpr_auto_status(camera_id: str = "", limit: int = 20):
+    """Automatic ANPR status and the latest plates it recorded (optionally for one camera)."""
+    snap = auto_anpr_state.snapshot(camera_id=camera_id or None, limit=max(1, min(limit, 100)))
+    snap["interval_s"] = settings.auto_anpr_interval_s
+    snap["dedupe_s"] = settings.auto_anpr_dedupe_s
+    snap["live_camera_id"] = live_stream_state.current_camera_id if live_stream_state.is_active else None
+    snap["engine_ready"] = plate_recognizer.status()["available"]
+    return snap
+
+
+@router.post("/api/anpr/auto/{mode}")
+def anpr_auto_toggle(mode: str):
+    """Turn automatic ANPR on or off."""
+    if mode not in {"on", "off"}:
+        return JSONResponse({"error": "mode must be 'on' or 'off'"}, 400)
+    auto_anpr_state.set_enabled(mode == "on")
+    return {"ok": True, "enabled": auto_anpr_state.is_enabled}
 
 
 def _collect_camera_source_candidates(camera_id: str, cam: dict[str, Any] | None) -> list[str]:
@@ -133,22 +154,28 @@ def scan_live_anpr(camera_id: str):
     if db_manager.query_one("SELECT id FROM cameras WHERE id=?", camera_id):
         db_manager.execute("UPDATE cameras SET last_note=? WHERE id=?", note, camera_id)
 
-        for idx, vehicle in enumerate(result.get("vehicles") or []):
-            plate_data = (result.get("plates_enhanced") or [None])[idx] or {}
-            plate_text = str(plate_data.get("plate_text") or "Plate Not Clear")
-            confidence = float(plate_data.get("ocr_confidence") or vehicle.get("confidence") or 0.0)
-            db_manager.execute(
-                "INSERT INTO vehicle_detections VALUES(?,?,?,?,?,?,?,?,?,?)",
-                "scan-" + uuid.uuid4().hex[:12],
-                camera_id,
-                vehicle.get("cls") or "vehicle",
-                f"live-{idx + 1}",
-                plate_text,
-                confidence,
-                result.get("timestamp") or note,
-                cam.get("lat"),
-                cam.get("lng"),
-                cam.get("place") or cam.get("name") or camera_id,
-            )
+    # One row per vehicle, using the plate actually read on *that* vehicle (plates are not
+    # paired by list position). Saved for every camera, including the built-in feeds.
+    plates_by_vehicle = {}
+    extra_plates = []
+    for p in result.get("plates_enhanced") or []:
+        if p.get("vehicle") in (result.get("vehicles") or []):
+            plates_by_vehicle[id(p["vehicle"])] = p
+        elif p.get("raw_plate"):
+            extra_plates.append(p)
+    place = cam.get("place") or cam.get("name") or camera_id
+    rows = []
+    for idx, vehicle in enumerate(result.get("vehicles") or []):
+        p = plates_by_vehicle.get(id(vehicle)) or {}
+        rows.append((vehicle.get("cls") or "vehicle", f"scan-{idx + 1}", p.get("raw_plate") or "Plate Not Clear",
+                     float(p.get("ocr_confidence") or vehicle.get("confidence") or 0.0)))
+    for idx, p in enumerate(extra_plates):
+        rows.append(("vehicle", f"scan-plate-{idx + 1}", p["raw_plate"], float(p.get("ocr_confidence") or 0.0)))
+    for cls, track, plate_text, confidence in rows:
+        db_manager.execute(
+            "INSERT INTO vehicle_detections VALUES(?,?,?,?,?,?,?,?,?,?)",
+            "scan-" + uuid.uuid4().hex[:12], camera_id, cls, track, plate_text, confidence,
+            utcnow(), cam.get("lat"), cam.get("lng"), place,
+        )
 
     return result
